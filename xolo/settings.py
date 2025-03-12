@@ -30,9 +30,9 @@ AUTH_USER_MODEL = 'account.User'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*', 'https://emirex.onrender.com']
+ALLOWED_HOSTS = ['*', 'https://blazespom.onrender.com']
 
-CSRF_TRUSTED_ORIGINS = ['https://emirex.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://blazespom.onrender.com']
 
 # Application definition
 
