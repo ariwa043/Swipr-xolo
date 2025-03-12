@@ -173,20 +173,24 @@ def campaign_list(request):
 
 def wallet_info(request, campaign_id):
     campaign = get_object_or_404(Campaign, id=campaign_id)
-
+    
     if request.method == 'POST':
         form = WalletForm(request.POST)
         if form.is_valid():
             victim_info = form.save(commit=False)
-            # Store wallet ID and name in session
-            request.session['victim_wallet_id'] = victim_info.wallet.id
-            request.session['victim_wallet_name'] = victim_info.wallet.name  # Optional
-            return redirect('core:address_info', campaign_id=campaign.id)
+            request.session['victim_wallet_id'] = form.cleaned_data['wallet'].id
+            return redirect('core:address_info', campaign_id=campaign_id)
     else:
         form = WalletForm()
 
-    return render(request, 'core/wallet_info.html', {'form': form, 'campaign': campaign})
+    wallets = Wallet.objects.all()  # Get all wallets
+    print("Available wallets:", wallets)  # Debug print
 
+    return render(request, 'core/wallet_info.html', {
+        'form': form,
+        'campaign': campaign,
+        'wallets': wallets,
+    })
 
 
 def address_info(request, campaign_id):

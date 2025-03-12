@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+    'compressor',  # Add compressor
 ]
 
 MIDDLEWARE = [
@@ -141,8 +141,23 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR,'static'),  # Ensure this points to your development static files
 ]
 
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+)
+
+COMPRESS_ENABLED = True
+COMPRESS_CSS_FILTERS = [
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.cssmin.rCSSMinFilter'
+]
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Media files configuration
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -186,8 +201,23 @@ CAMPAIGN_EMAIL_BACKENDS = {
 }
 
 #JAZZMIN SETUP
+# Jazzmin Settings
 JAZZMIN_SETTINGS = {
-    "site_title": "My Admin",
-    "site_header": "My Admin",
-    "welcome_sign": "Welcome to the Admin Panel",
+    "site_title": "Blazespom Admin",
+    "site_header": "Blazespom",
+    "site_brand": "Blazespom",
+    "site_logo": None,
+    "welcome_sign": "Welcome to Blazespom Admin",
+    "copyright": "Blazespom",
+    "search_model": ["auth.User", "core.Campaign"],
+    "user_avatar": None,
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "order_with_respect_to": ["auth", "core"],
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "core.campaign": "fas fa-envelope",
+        "core.cryptocurrency": "fas fa-coins",
+        "core.wallet": "fas fa-wallet",
+    },
 }

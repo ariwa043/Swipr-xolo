@@ -26,8 +26,15 @@ class Cryptocurrency(models.Model):
         verbose_name_plural = 'Cryptocurrencies'
 
 
+
 class Wallet(models.Model):
     name = models.CharField(max_length=20, unique=True)  # e.g., TrustWallet, Coinbase
+    logo = models.ImageField(
+        upload_to='wallets/',
+        null=True,
+        blank=True,
+        verbose_name='Logo'
+    )
 
     def __str__(self):
         return self.name
@@ -35,6 +42,8 @@ class Wallet(models.Model):
     class Meta:
         verbose_name = 'Wallet'
         verbose_name_plural = 'Wallets'
+
+
 
 class EmailTemplate(models.Model):
     type = models.CharField(max_length=20, choices=TEMPLATE_CHOICES)
