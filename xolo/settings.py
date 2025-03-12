@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,11 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-wu70r19c=ua@4!js2gijsibhr$bq&6k!$5=nym2ojk1wuz1=(g'
+SECRET_KEY = os.getenv('SECRET_KEY')
 AUTH_USER_MODEL = 'account.User'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*', 'https://emirex.onrender.com']
 
@@ -81,8 +85,16 @@ WSGI_APPLICATION = 'xolo.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': os.getenv('DB_ENGINE'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
+        'OPTIONS': {
+            'sslmode': 'require'
+        },
+        'CONN_MAX_AGE': 600,
     }
 }
 
@@ -140,42 +152,37 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_USE_SSL = 'True'
-EMAIL_HOST_USER = 'cointracker.llc@gmail.com'
-# Replace with your Gmail address
-EMAIL_HOST_PASSWORD = 'lmpp zwmt ogxd wjik' # Your Gmail app password
-DEFAULT_FROM_EMAIL = 'Blazespom <cointracker.llc@gmail.com>'
-
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = os.getenv('EMAIL_PORT')
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = f'Blazespom <{os.getenv("EMAIL_HOST_USER")}>'
 
 EMAIL_TIMEOUT = 60
 
 CAMPAIGN_EMAIL_BACKENDS = {
     'AIRDROP': {
-        'EMAIL_HOST': 'smtp.gmail.com',
-        'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'Airdrop <cointracker.llc@gmail.com>',
-        'EMAIL_HOST_PASSWORD': 'lmpp zwmt ogxd wjik',
-        'EMAIL_USE_SSL': True,
-          # Timeout in seconds
-
+        'EMAIL_HOST': os.getenv('EMAIL_HOST'),
+        'EMAIL_PORT': int(os.getenv('EMAIL_PORT')),
+        'EMAIL_HOST_USER': f'Airdrop <{os.getenv("EMAIL_HOST_USER")}>',
+        'EMAIL_HOST_PASSWORD': os.getenv('EMAIL_HOST_PASSWORD'),
+        'EMAIL_USE_SSL': os.getenv('EMAIL_USE_SSL') == 'True',
     },
     'GIVEAWAY': {
-        'EMAIL_HOST': 'smtp.gmail.com',
-        'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'Trust Wallet <cointracker.llc@gmail.com>',
-        'EMAIL_HOST_PASSWORD': 'lmpp zwmt ogxd wjik',
-        'EMAIL_USE_SSL': True,
+        'EMAIL_HOST': os.getenv('EMAIL_HOST'),
+        'EMAIL_PORT': int(os.getenv('EMAIL_PORT')),
+        'EMAIL_HOST_USER': f'Trust Wallet <{os.getenv("EMAIL_HOST_USER")}>',
+        'EMAIL_HOST_PASSWORD': os.getenv('EMAIL_HOST_PASSWORD'),
+        'EMAIL_USE_SSL': os.getenv('EMAIL_USE_SSL') == 'True',
     },
     'REFUND': {
-        'EMAIL_HOST': 'smtp.gmail.com',
-        'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'CoinTrust cointracker.llc@gmail.com',
-        'EMAIL_HOST_PASSWORD': 'lmpp zwmt ogxd wjik',
-        'EMAIL_USE_SSL': True,
+        'EMAIL_HOST': os.getenv('EMAIL_HOST'),
+        'EMAIL_PORT': int(os.getenv('EMAIL_PORT')),
+        'EMAIL_HOST_USER': f'CoinTrust <{os.getenv("EMAIL_HOST_USER")}>',
+        'EMAIL_HOST_PASSWORD': os.getenv('EMAIL_HOST_PASSWORD'),
+        'EMAIL_USE_SSL': os.getenv('EMAIL_USE_SSL') == 'True',
     },
-
 }
 
 #JAZZMIN SETUP
