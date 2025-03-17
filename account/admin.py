@@ -50,11 +50,16 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 @admin.register(Deposit)
 class DepositAdmin(admin.ModelAdmin):
-    list_display = ('deposit_id', 'user', 'subscription_plan', 'get_amount', 'status', 'created_at')
+    list_display = ('deposit_id', 'user', 'subscription_plan', 'get_amount', 'status', 'created_at', 'has_receipt')
     list_filter = ('status',)
     search_fields = ('user__username', 'deposit_id')
     readonly_fields = ('deposit_id', 'get_amount', 'created_at')
     ordering = ('-created_at',)
+
+    def has_receipt(self, obj):
+        return bool(obj.receipt)
+    has_receipt.boolean = True
+    has_receipt.short_description = 'Has Receipt'
 
     def get_amount(self, obj):
         return obj.amount if obj.subscription_plan else 0
