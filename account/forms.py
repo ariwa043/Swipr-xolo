@@ -53,13 +53,17 @@ class DepositForm(forms.ModelForm):
 
     class Meta:
         model = Deposit
-        fields = ['subscription_plan']
+        fields = ['subscription_plan', 'receipt']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['subscription_plan'].widget.attrs.update({
             'class': 'form-control',
             'onchange': 'updateAmount(this.value)'
+        })
+        self.fields['receipt'].widget.attrs.update({
+            'class': 'form-control',
+            'accept': '.jpg,.jpeg,.png,.pdf'
         })
 
     def clean_amount(self):
