@@ -141,6 +141,7 @@ class Deposit(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     payment_account = models.ForeignKey(Payment_account, on_delete=models.CASCADE, null=True, blank=True)
     subscription_plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE, null=True, blank=True)
+    receipt = models.ImageField(upload_to='deposits/', null=True, blank=True, validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'pdf'])], help_text="Upload payment receipt")
     created_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
 
@@ -148,12 +149,18 @@ class Deposit(models.Model):
     def amount(self):
         return self.subscription_plan.price
 
+    @property
+    def has_proof(self):
+        return bool(self.receipt)
+
+
     class Meta:
         verbose_name = 'Deposit'
         verbose_name_plural = 'Deposits'
 
     def __str__(self):
         return f'{self.user.username} -  subscription payment'
+
 
 
 class Transactions(models.Model):
@@ -174,19 +181,32 @@ class Transactions(models.Model):
         return f'{self.user.username} - subscription'
 
 
+
 @receiver(pre_save, sender=Deposit)
 def create_subscription_on_deposit(sender, instance, **kwargs):
     if instance.id:
-        old_instance = Deposit.objects.get(id=instance.id)
-        if old_instance.status != 'COMPLETED' and instance.status == 'COMPLETED':
-            # Create or extend subscription
-            subscription = Subscription.objects.create(
-                user=instance.user,
-                plan=instance.subscription_plan
-            )
-            # Create transaction record
-            Transactions.objects.create(
-                user=instance.user,
-                subscription=subscription,
-                status='COMPLETED'
-            )
+        try:
+            old_instance = Deposit.objects.get(id=instance.id)
+            # Only proceed if status is changing from non-COMPLETED to COMPLETED
+            if old_instance.status != 'COMPLETED' and instance.status == 'COMPLETED':
+                # Check if a transaction already exists for this deposit
+                existing_transaction = Transactions.objects.filter(
+                    user=instance.user,
+                    subscription__plan=instance.subscription_plan,
+                    created_at__date=instance.created_at.date()
+                ).exists()
+
+                if not existing_transaction:
+                    # Create or extend subscription
+                    subscription = Subscription.objects.create(
+                        user=instance.user,
+                        plan=instance.subscription_plan
+                    )
+                    # Create transaction record
+                    Transactions.objects.create(
+                        user=instance.user,
+                        subscription=subscription,
+                        status='COMPLETED'
+                    )
+        except Deposit.DoesNotExist:
+            pass
