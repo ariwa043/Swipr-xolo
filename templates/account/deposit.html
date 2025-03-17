@@ -34,7 +34,7 @@
                 
                 <div class="plan-selection">
                     <h3><i class="fas fa-crown"></i> Select Your Plan</h3>
-                    <form method="post" class="payment-form">
+                    <form method="post" class="payment-form" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="select-wrapper">
                             <select name="subscription_plan" required>
@@ -46,6 +46,20 @@
                                 {% endif %}
                             </select>
                         </div>
+                        
+                        <div class="receipt-upload">
+                            <label for="receipt">
+                                <i class="fas fa-file-upload"></i> Upload Payment Receipt
+                                <span class="file-types">(JPG, PNG, PDF)</span>
+                            </label>
+                            <input type="file" 
+                                   id="receipt" 
+                                   name="receipt" 
+                                   accept=".jpg,.jpeg,.png,.pdf"
+                                   required>
+                            <div class="file-name" id="fileName">No file chosen</div>
+                        </div>
+
                         <button type="submit" class="submit-btn">
                             <i class="fas fa-check-circle"></i> Confirm Payment
                         </button>
@@ -209,6 +223,11 @@
                 alert('Please select a subscription plan');
             }
         });
+
+        document.getElementById('receipt').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || 'No file chosen';
+            document.getElementById('fileName').textContent = fileName;
+        });
     </script>
 
     <style>
@@ -267,6 +286,40 @@
         .notification.show {
             transform: translateX(-50%) translateY(0);
             opacity: 1;
+        }
+
+        .receipt-upload {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .receipt-upload label {
+            display: inline-block;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .receipt-upload label:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .receipt-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-types {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-left: 8px;
+        }
+
+        .file-name {
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
         }
     </style>
 </body>
