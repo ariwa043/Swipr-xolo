@@ -5,6 +5,7 @@ from django.utils import timezone
 from shortuuid.django_fields import ShortUUIDField
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
+from django.core.validators import FileExtensionValidator
 
 STATUS_CHOICES = [
     ('PENDING', 'Pending'),
