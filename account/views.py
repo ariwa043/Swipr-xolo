@@ -117,15 +117,7 @@ def subscription_plans(request):
 @login_required
 def subscribe_to_plan(request, plan_id):
     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
-    
-    # Create pending deposit for subscription
-    deposit = Deposit.objects.create(
-        user=request.user,
-        subscription_plan=plan,
-        status='PENDING'
-    )
-    
-    messages.success(request, 'Please complete your payment to activate the subscription.')
+    # Remove deposit creation from here
     return redirect('account:deposit')
 
 # Deposit view
@@ -134,17 +126,25 @@ def deposit(request):
     payment_info = Payment_account.objects.first()
 
     if request.method == 'POST':
-        form = DepositForm(request.POST)
+        form = DepositForm(request.POST, request.FILES)
         if form.is_valid():
             deposit = form.save(commit=False)
             deposit.user = request.user
+            deposit.payment_account = payment_info
             deposit.status = 'PENDING'
+            
+            # Handle receipt file
+            if 'receipt' in request.FILES:
+                deposit.receipt = request.FILES['receipt']
+            
             deposit.save()
-
+            
             # Send admin notification
             notify_admins_of_pending_payment(deposit)
-            messages.success(request, 'Payment submitted, pending approval.')
+            messages.success(request, 'Payment submitted and under review.')
             return redirect('account:profile')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = DepositForm()
 
