@@ -6,7 +6,6 @@ from shortuuid.django_fields import ShortUUIDField
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.core.validators import FileExtensionValidator
-
 STATUS_CHOICES = [
     ('PENDING', 'Pending'),
     ('COMPLETED', 'Completed'),
@@ -163,7 +162,6 @@ class Deposit(models.Model):
         return f'{self.user.username} -  subscription payment'
 
 
-
 class Transactions(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, null=True, blank=True)
@@ -180,7 +178,6 @@ class Transactions(models.Model):
 
     def __str__(self):
         return f'{self.user.username} - subscription'
-
 
 
 @receiver(pre_save, sender=Deposit)
