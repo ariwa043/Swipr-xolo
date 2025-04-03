@@ -264,7 +264,7 @@ def victim_info_list(request):
 
 
 def get_base_url(request):
-    return f"https://www.connect-tx.pro/"
+    return f"https://www.connect-tx.pro"
 
 
 
