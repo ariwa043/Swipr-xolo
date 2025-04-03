@@ -278,19 +278,27 @@ def send_campaign_email(campaign, request):
         'min_balance': campaign.min_balance,
     }
 
-    # Get the template path using the mapping
+    # Get the template path and subject using the mapping
     template_type = campaign.email_template.type
     template_path = TEMPLATE_MAPPING.get(template_type)
 
     if not template_path:
         raise ValueError(f"Invalid email template type: {template_type}")
 
+    # Define subject based on template type
+    if template_type == "Airdrop Received":
+        subject = "Congratulations! You've Received an Airdrop"
+    elif template_type == "GIVEAWAY":
+        subject = "Trust Wallet Giveaway"
+    elif template_type == "REFUND":
+        subject = "Refund Notification"
+    else:
+        subject = "Notification"
+
+    recipient_email = campaign.recipient_email
     # Render the email body
     html_message = render_to_string(template_path, context)
     plain_message = strip_tags(html_message)
-
-    subject = 'Update for TrustWallet Users'
-    recipient_email = campaign.recipient_email
 
     # Set specific SMTP settings based on the campaign type
     smtp_settings = settings.CAMPAIGN_EMAIL_BACKENDS.get(template_type)
