@@ -28,11 +28,11 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 AUTH_USER_MODEL = 'account.User'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*', 'https://blazespom.onrender.com']
+ALLOWED_HOSTS = ['*', 'https://blazespom.onrender.com', 'https://blazespom.com']
 
-CSRF_TRUSTED_ORIGINS = ['https://blazespom.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://blazespom.onrender.com', 'https://blazespom.com']
 
 # Application definition
 
