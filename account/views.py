@@ -238,7 +238,7 @@ def create_payment(request, plan_id):
         except Exception as e:
             logger.error(f"Error creating payment: {str(e)}")
             messages.error(request, f"Payment creation failed: {str(e)}")
-            return redirect('subscription_plans')
+            return redirect('account:subscription_plans')
         
     cryptocurrencies = [
         {'code': 'BTC', 'name': 'Bitcoin'},
