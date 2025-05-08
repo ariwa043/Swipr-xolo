@@ -10,3 +10,4 @@ shortuuid
 whitenoise
 Pillow==10.1.0
 django-compressor==4.4
+requests
