@@ -28,7 +28,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 AUTH_USER_MODEL = 'account.User'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = True
 
 ALLOWED_HOSTS = ['*', 'https://blazespom.onrender.com']
 
@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'compressor',  # Add compressor
 ]
 
 MIDDLEWARE = [
@@ -80,9 +79,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'xolo.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
+# Database configuration - using SQLite3
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE'),
@@ -97,6 +94,7 @@ DATABASES = {
         'CONN_MAX_AGE': 600,
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -138,20 +136,13 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR,'static'),  # Ensure this points to your development static files
+    os.path.join(BASE_DIR,'static'),
 ]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'compressor.finders.CompressorFinder',
 )
-
-COMPRESS_ENABLED = True
-COMPRESS_CSS_FILTERS = [
-    'compressor.filters.css_default.CssAbsoluteFilter',
-    'compressor.filters.cssmin.rCSSMinFilter'
-]
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
@@ -221,3 +212,13 @@ JAZZMIN_SETTINGS = {
         "core.wallet": "fas fa-wallet",
     },
 }
+
+# Define base URL for the site
+BASE_URL = 'https://blazespom.onrender.com' if not DEBUG else 'http://localhost:8000'
+
+# NOWPayments Settings
+NOWPAYMENTS_API_KEY = 'FWNR786-KM34AQ5-PFJ7SM8-4YPHX8E'
+NOWPAYMENTS_IPN_SECRET_KEY = 'FWb1JV7X6/W3G4A5p/+LotQh2lAdmc2N'
+NOWPAYMENTS_IPN_CALLBACK_URL = f'{BASE_URL}/api/crypto/ipn-callback/'
+NOWPAYMENTS_SUCCESS_URL = f'{BASE_URL}/account/crypto-payment/success/'
+NOWPAYMENTS_CANCEL_URL = f'{BASE_URL}/account/crypto-payment/cancel/'

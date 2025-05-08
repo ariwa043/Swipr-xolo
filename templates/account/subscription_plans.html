@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Subscription Plans{% endblock %}
+{% block extra_css %}
+<style>
+    .plans-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        padding: 1rem;
+    }
+
+    .card {
+        background: #2c2c2c;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .card-header {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .price-section {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .amount {
+        color: #2196f3;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+
+    .features-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex: 1;
+    }
+
+    .features-list li {
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        margin-bottom: 0.5rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-subscribe {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(45deg, #2196f3, #2979ff);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        margin-top: 1.5rem;
+    }
+
+    .active-subscriptions {
+        margin-top: 3rem;
+        background: #2c2c2c;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .plans-grid {
+            gap: 1.5rem;
+            padding: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="plans-container">
+    <h2 class="text-white mb-4">Choose a Subscription Plan</h2>
+
+    {% if user_subscriptions %}
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle"></i> 
+        You have active subscriptions. 
+        <a href="{% url 'account:subscription_status' %}" class="alert-link">View details</a>
+    </div>
+    {% endif %}
+
+    <div class="plans-grid">
+        {% for plan in plans %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-white m-0">{{ plan.name|default:"Standard" }} Plan</h3>
+            </div>
+            <div class="card-body">
+                <div class="price-section">
+                    <span class="amount">₦{{ plan.price }}</span>
+                    <span class="period text-muted">/{{ plan.duration_days }} days</span>
+                </div>
+                <ul class="features-list">
+                    <li><i class="fas fa-envelope me-2"></i>{{ plan.max_emails_per_month }} emails per month</li>
+                    <li><i class="fas fa-calendar-alt me-2"></i>{{ plan.duration_days }} days access</li>
+                </ul>
+                <form method="post" action="{% url 'account:subscribe' plan.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-subscribe">Subscribe Now</button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-warning">
+            No subscription plans are currently available.
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if user_subscriptions %}
+    <div class="active-subscriptions">
+        <h3 class="text-white mb-3">Your Active Subscriptions</h3>
+        <div class="features-list">
+            {% for sub in user_subscriptions %}
+            <li class="d-flex justify-content-between">
+                <span>{{ sub.plan.name|default:"Standard" }} Plan</span>
+                <span class="text-muted">Expires: {{ sub.end_date|date:"M d, Y" }}</span>
+            </li>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

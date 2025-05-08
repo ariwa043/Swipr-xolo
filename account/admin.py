@@ -1,6 +1,7 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from .models import (
-    User, UserProfile, Transactions, Payment_account,
+    User, UserProfile, Transactions,
     SubscriptionPlan, Subscription, Deposit
 )
 
@@ -27,13 +28,6 @@ class UserProfileAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
-
-@admin.register(Payment_account)
-class Payment_accountAdmin(admin.ModelAdmin):
-    list_display = ('bank_name', 'account_number', 'account_holder_name')
-    list_filter = ('bank_name',)
-    search_fields = ('bank_name', 'account_number', 'account_holder_name')
-    ordering = ('bank_name',)
     
 @admin.register(SubscriptionPlan)
 class SubscriptionPlanAdmin(admin.ModelAdmin):
@@ -50,14 +44,15 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 @admin.register(Deposit)
 class DepositAdmin(admin.ModelAdmin):
-    list_display = ('deposit_id', 'user', 'subscription_plan', 'get_amount', 'status', 'created_at')
-    list_filter = ('status',)
-    search_fields = ('user__username', 'deposit_id')
-    readonly_fields = ('deposit_id', 'get_amount', 'created_at')
+    list_display = ('payment_id', 'user', 'subscription_plan', 'get_amount', 'payment_status', 'created_at')
+    list_filter = ('payment_status', 'created_at')  # Removed invalid filter
+    search_fields = ('user__username', 'payment_id')
     ordering = ('-created_at',)
 
     def get_amount(self, obj):
-        return obj.amount if obj.subscription_plan else 0
+        if obj.subscription_plan:
+            return f"{obj.price_amount} {obj.price_currency}"
+        return "0"
     get_amount.short_description = 'Amount'
 
 @admin.register(Transactions)

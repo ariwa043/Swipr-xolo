@@ -3,15 +3,22 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import CustomUserCreationForm, DepositForm, EmailAuthenticationForm
-from .models import UserProfile, Deposit, Transactions, Payment_account, SubscriptionPlan, Subscription
+from .models import UserProfile, Deposit, Transactions, SubscriptionPlan, Subscription
 from django.db.models import Sum
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
-from core.models import Campaign
+from core.models import Campaign, Cryptocurrency  # Add this import
 import logging
 from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from .nowpayments import NowPaymentsAPI
+from decimal import Decimal
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -75,20 +82,24 @@ def user_logout(request):
 @login_required
 def profile(request):
     user_profile = UserProfile.get_profile(request.user)
-    
+
     # Get completed deposits
-    deposits = Deposit.objects.filter(
-        user=request.user,
-        status='COMPLETED'
+    deposits = Deposit.objects.filter(user=request.user, payment_status='COMPLETED')
+    total_deposits = sum(
+        deposit.subscription_plan.price for deposit in deposits if deposit.subscription_plan
     )
-    total_deposits = sum(deposit.subscription_plan.price for deposit in deposits)
 
     # Get transactions
     transactions = Transactions.objects.filter(
         user=request.user
     ).select_related('subscription__plan')
 
-    campaigns_count = Campaign.objects.filter(user=request.user).count()
+    # Safely handle campaigns_count (skip if Campaign model is unavailable)
+    try:
+        from core.models import Campaign
+        campaigns_count = Campaign.objects.filter(user=request.user).count()
+    except ImportError:
+        campaigns_count = 0
 
     context = {
         'user_profile': user_profile,
@@ -103,77 +114,38 @@ def profile(request):
 # Subscription plans view
 @login_required
 def subscription_plans(request):
+    """Display available subscription plans"""
     plans = SubscriptionPlan.objects.all()
-    user_subscriptions = Subscription.objects.filter(
-        user=request.user,
-        is_active=True
-    )
-    return render(request, 'account/plans.html', {
+    
+    # Check if user has active subscription
+    user_profile = request.user.userprofile
+    has_active_subscription = user_profile.has_active_subscription
+    
+    context = {
         'plans': plans,
-        'user_subscriptions': user_subscriptions
-    })
+        'has_active_subscription': has_active_subscription
+    }
+    return render(request, 'account/subscription_plans.html', context)
 
 # Subscribe to plan view
 @login_required
 def subscribe_to_plan(request, plan_id):
     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
-    
-    # Create pending deposit for subscription
-    deposit = Deposit.objects.create(
-        user=request.user,
-        subscription_plan=plan,
-        status='PENDING'
-    )
-    
-    messages.success(request, 'Please complete your payment to activate the subscription.')
-    return redirect('account:deposit')
-
-# Deposit view
-@login_required 
-def deposit(request):
-    payment_info = Payment_account.objects.first()
-
-    if request.method == 'POST':
-        form = DepositForm(request.POST)
-        if form.is_valid():
-            deposit = form.save(commit=False)
-            deposit.user = request.user
-            deposit.status = 'PENDING'
-            deposit.save()
-
-            # Send admin notification
-            notify_admins_of_pending_payment(deposit)
-            messages.success(request, 'Payment submitted, pending approval.')
-            return redirect('account:profile')
-    else:
-        form = DepositForm()
-
-    return render(request, 'account/deposit.html', {
-        'form': form,
-        'payment_info': payment_info,
-    })
-
-# Subscription list view
-#@login_required
-#def subscription_list(request):
-#    subscriptions = Subscription.objects.filter(user=request.user).order_by('-start_date')
-#    return render(request, 'account/subscriptions.html', {
-#        'subscriptions': subscriptions
-#    })
+    # Remove deposit creation from here
+    return redirect('account:create_payment', plan_id=plan.id)
 
 # Transaction history view
 @login_required
 def transaction_history(request):
-    # Get all deposits
     deposits = Deposit.objects.filter(
         user=request.user
     ).select_related('subscription_plan').order_by('-created_at')
 
-    # Calculate total amount from completed deposits
+    # Calculate total amount from completed deposits - fix status to payment_status
     total_amount = sum(
         deposit.subscription_plan.price 
         for deposit in deposits 
-        if deposit.status == 'COMPLETED'
+        if deposit.payment_status == 'COMPLETED'
     )
 
     return render(request, 'account/transactions.html', {
@@ -220,3 +192,267 @@ def notify_admins_of_pending_payment(deposit):
             recipient_list=admin_emails,
             fail_silently=True
         )
+
+
+
+
+################################################### PAYMENT VIEWS ####################################################
+
+
+
+@login_required
+def create_payment(request, plan_id):
+    """Create a payment for a subscription plan"""
+    plan = get_object_or_404(SubscriptionPlan, pk=plan_id)
+    
+    if request.method == 'POST':
+        # Initialize NowPayments API
+        nowpayments_api = NowPaymentsAPI()
+        
+        # Get selected cryptocurrency from form (if applicable)
+        pay_currency = request.POST.get('pay_currency', 'BTC')  # Default to BTC
+        
+        try:
+            # Create payment through NowPayments API
+            payment_data = nowpayments_api.create_payment(
+                price_amount=plan.price,
+                price_currency='USD',  # Change if your primary currency is different
+                pay_currency=pay_currency,
+                order_id=f"sub_{request.user.id}_{plan.id}_{timezone.now().timestamp()}"
+            )
+
+     # Create deposit record in database
+            deposit = Deposit.objects.create(
+                payment_id=payment_data['payment_id'],
+                user=request.user,
+                subscription_plan=plan,
+                pay_address=payment_data['pay_address'],
+                pay_amount=payment_data['pay_amount'],
+                pay_currency=payment_data['pay_currency'],
+                price_amount=payment_data['price_amount'],
+                price_currency=payment_data['price_currency'],
+                payment_status='WAITING'
+            )
+
+            return redirect('account:payment_details', payment_id=deposit.payment_id)
+        except Exception as e:
+            logger.error(f"Error creating payment: {str(e)}")
+            messages.error(request, f"Payment creation failed: {str(e)}")
+            return redirect('subscription_plans')
+        
+    cryptocurrencies = [
+        {'code': 'BTC', 'name': 'Bitcoin'},
+        {'code': 'ETH', 'name': 'Ethereum'},
+        {'code': 'LTC', 'name': 'Litecoin'},
+        {'code': 'USDT', 'name': 'Tether'},
+        # Add more cryptocurrencies as needed
+    ]
+    
+    context = {
+        'plan': plan,
+        'cryptocurrencies': cryptocurrencies
+    }
+    return render(request, 'account/create_payment.html', context)
+
+
+
+@login_required
+def payment_details(request, payment_id):
+    """Display payment details and status"""
+    deposit = get_object_or_404(Deposit, payment_id=payment_id, user=request.user)
+    
+    # If payment is not completed, check the current status
+    if deposit.payment_status != 'COMPLETED':
+        try:
+            nowpayments_api = NowPaymentsAPI()
+            payment_status = nowpayments_api.get_payment_status(deposit.payment_id)
+            
+            # Update deposit status if changed
+            if payment_status['payment_status'] != deposit.payment_status:
+                deposit.payment_status = payment_status['payment_status']
+                deposit.save()
+                
+                # If payment is now completed, create subscription
+                if deposit.payment_status == 'COMPLETED' and deposit.subscription_plan:
+                    _create_or_extend_subscription(deposit)
+                    messages.success(request, "Payment completed! Your subscription has been activated.")
+        except Exception as e:
+            logger.error(f"Error checking payment status: {str(e)}")
+    
+    context = {
+        'deposit': deposit,
+        'now': timezone.now()
+    }
+    return render(request, 'account/payment_details.html', context)
+
+@csrf_exempt
+@require_POST
+def ipn_callback(request):
+    """Handle instant payment notifications from NowPayments"""
+    try:
+        # Verify the signature
+        nowpayments_api = NowPaymentsAPI()
+        nowpayments_sig = request.headers.get('x-nowpayments-sig')
+        
+        if not nowpayments_sig:
+            logger.error("Missing NowPayments signature")
+            return HttpResponse(status=400)
+        
+        # Parse request body
+        try:
+            request_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON in IPN callback")
+            return HttpResponse(status=400)
+        
+        # Verify signature
+        if not nowpayments_api.verify_ipn_callback(request_data, nowpayments_sig):
+            logger.error("Invalid signature in IPN callback")
+            return HttpResponse(status=403)
+        
+        # Process the payment notification
+        payment_id = request_data.get('payment_id')
+        payment_status = request_data.get('payment_status')
+        
+        if not payment_id or not payment_status:
+            logger.error("Missing payment_id or payment_status in IPN callback")
+            return HttpResponse(status=400)
+        
+        # Update the deposit record
+        try:
+            deposit = Deposit.objects.get(payment_id=payment_id)
+            deposit.payment_status = payment_status
+            deposit.ipn_received = True
+            deposit.updated_at = timezone.now()
+            deposit.save()
+            
+            # If payment is completed, create or extend subscription
+            if payment_status == 'COMPLETED':
+                _create_or_extend_subscription(deposit)
+            
+            return HttpResponse(status=200)
+        except Deposit.DoesNotExist:
+            logger.error(f"Deposit with payment_id {payment_id} not found")
+            return HttpResponse(status=404)
+            
+    except Exception as e:
+        logger.error(f"Error processing IPN callback: {str(e)}")
+        return HttpResponse(status=500)
+
+def _create_or_extend_subscription(deposit):
+    """Helper function to create or extend subscription"""
+    # Skip if already processed (to prevent duplicates)
+    existing_transaction = Transactions.objects.filter(
+        user=deposit.user,
+        status='COMPLETED',
+        subscription__plan=deposit.subscription_plan,
+        created_at__date=deposit.updated_at.date()
+    ).exists()
+    
+    if existing_transaction:
+        return
+    
+    # Check if user has an active subscription of the same plan
+    try:
+        existing_subscription = Subscription.objects.get(
+            user=deposit.user,
+            plan=deposit.subscription_plan,
+            is_active=True,
+            end_date__gt=timezone.now()
+        )
+        
+        # Extend existing subscription
+        existing_subscription.end_date = existing_subscription.end_date + timezone.timedelta(
+            days=deposit.subscription_plan.duration_days
+        )
+        existing_subscription.save()
+        
+        # Create transaction record
+        Transactions.objects.create(
+            user=deposit.user,
+            subscription=existing_subscription,
+            status='COMPLETED'
+        )
+    except Subscription.DoesNotExist:
+        # Create new subscription
+        subscription = Subscription.objects.create(
+            user=deposit.user,
+            plan=deposit.subscription_plan,
+            is_active=True
+        )
+        
+        # Create transaction record
+        Transactions.objects.create(
+            user=deposit.user,
+            subscription=subscription,
+            status='COMPLETED'
+        )
+
+@login_required
+def subscription_status(request):
+    """View subscription status"""
+    user = request.user
+    try:
+        subscriptions = Subscription.objects.filter(
+            user=user,
+            is_active=True,
+            end_date__gt=timezone.now()
+        ).order_by('-end_date')
+        
+        transactions = Transactions.objects.filter(
+            user=user,
+            status='COMPLETED'
+        ).order_by('-created_at')[:10]  # Show last 10 transactions
+        
+    except Exception as e:
+        subscriptions = []
+        transactions = []
+        logger.error(f"Error retrieving subscription data: {str(e)}")
+        messages.error(request, "Unable to retrieve subscription information.")
+    
+    context = {
+        'subscriptions': subscriptions,
+        'transactions': transactions,
+        'now': timezone.now()
+    }
+    return render(request, 'account/subscription_status.html', context)
+
+@login_required
+def check_payment_status(request, payment_id):
+    """AJAX endpoint to check payment status"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
+    
+    try:
+        deposit = get_object_or_404(Deposit, payment_id=payment_id, user=request.user)
+        nowpayments_api = NowPaymentsAPI()
+        
+        
+        try:
+            payment_status = nowpayments_api.get_payment_status(deposit.payment_id)
+            
+            # Update deposit status if changed
+            if payment_status.get('payment_status') != deposit.payment_status:
+                deposit.payment_status = payment_status.get('payment_status')
+                deposit.save()
+                
+                # If payment is now completed, create subscription
+                if deposit.payment_status == 'COMPLETED' and deposit.subscription_plan:
+                    _create_or_extend_subscription(deposit)
+            
+            return JsonResponse({
+                'status': deposit.payment_status,
+                'lastUpdated': deposit.updated_at.strftime('%B %d, %Y, %I:%M %p')
+            })
+            
+        except Exception as api_error:
+            logger.error(f"API Error checking payment status: {str(api_error)}")
+            return JsonResponse({
+                'error': 'Failed to check payment status',
+                'status': deposit.payment_status,
+                'lastUpdated': deposit.updated_at.strftime('%B %d, %Y, %I:%M %p')
+            })
+            
+    except Exception as e:
+        logger.error(f"Error checking payment status: {str(e)}")
+        return JsonResponse({'error': 'Failed to check payment status'}, status=500)

@@ -1,0 +1,670 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Details{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(45deg, #2962ff, #1565c0);
+        padding: 1.5rem;
+        border: none;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        letter-spacing: 0.5px;
+    }
+
+    .qr-container {
+        text-align: center;
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+
+    .qr-container img {
+        border: 8px solid white;
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.1);
+        border-radius: 0.5rem;
+    }
+
+    .payment-status {
+        font-weight: 600;
+        padding: 0.35rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .status-waiting {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-confirming {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-sending {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .status-completed {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-failed {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .list-group-item {
+        padding: 1rem 1.25rem;
+        border-color: #e9ecef;
+    }
+
+    .input-group {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .input-group .form-control {
+        border: 1px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        font-family: monospace;
+        flex: 1 1 auto;
+        border-right: none;
+    }
+
+    .input-group .btn {
+        padding: 0.2rem 0.2rem;
+        border: 1px solid #e9ecef;
+        align-items: center;
+        gap: 0.5rem;
+        white-space: nowrap;
+        border-left: none;
+        background-color: transparent;
+    }
+
+    .progress {
+        height: 0.75rem;
+        border-radius: 1rem;
+        background-color: #e9ecef;
+    }
+
+    .progress-bar {
+        border-radius: 1rem;
+    }
+
+    .alert {
+        border: none;
+        border-radius: 0.5rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .btn {
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #2962ff, #1565c0);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, #1565c0, #0d47a1);
+        transform: translateY(-1px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-outline-secondary {
+        color: white;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        transform: translateY(-1px);
+    }
+
+    #checkStatusBtn {
+        padding: 0.8rem 1rem;
+        font-size: 16px;
+        margin-bottom: 4em;
+        margin-top: 2em;
+        width: 100%;
+        background: #3498db;
+        color: white;
+        text-align: center;
+        border: none;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        height: 50px;
+    }
+    
+    #checkStatusBtn:hover {
+        background: #2980b9;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+    }
+    
+    #checkStatusBtn:active {
+        transform: scale(0.98);
+    }
+    
+    #checkStatusBtn:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+    }
+    
+    #checkStatusBtn .fas {
+        margin-right: 5px;
+    }
+    
+    .btn-ripple {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        transform: scale(0);
+        background-color: rgba(255, 255, 255, 0.5);
+        animation: ripple 0.6s linear;
+        pointer-events: none;
+    }
+    
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+    
+    .spin-animation {
+        animation: spin 1s linear infinite;
+        display: inline-block;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .fade-out {
+        animation: fadeOut 0.5s ease forwards;
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    
+    .loading {
+        position: relative;
+    }
+    
+    .loading::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.6);
+        z-index: 5;
+        border-radius: 0.5rem;
+    }
+    
+    .status-message {
+        opacity: 0;
+        height: 0;
+        transition: opacity 0.5s ease, height 0.5s ease;
+        overflow: hidden;
+    }
+    
+    .status-message.active {
+    opacity: 1;
+    height: auto;
+    margin-bottom: 1rem;
+    padding: 6px;
+    border-radius: 20px;
+}
+    
+    .status-update-container {
+        position: relative;
+    }
+    
+    .status-update-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .status-update-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .status-loading {
+        font-size: 2rem;
+        color: #3498db;
+    }
+
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .list-group-item {
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+<style>
+    .payment-address-container {
+      position: relative;
+    }
+    
+    .address-wrapper {
+      position: relative;
+      display: flex;
+      align-items: stretch;
+      border: 1px solid #e0e6ed;
+      border-radius: 10px;
+      background-color: #f8fafc;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+    }
+    
+    .address-wrapper:focus-within {
+      border-color: #2962ff;
+      box-shadow: 0 4px 12px rgba(41, 98, 255, 0.12);
+      background-color: #fff;
+    }
+    
+    .address-input {
+        flex: 1;
+        border: none;
+        padding: 14px;
+        padding-right: 10px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-weight: 600;
+        font-size: 15px;
+        color: #2c3e50;
+        background-color: transparent;
+        box-shadow: none;
+    }
+    
+    .address-input:focus {
+      outline: none;
+      box-shadow: none;
+    }
+    
+    .copy-btn {
+      position: absolute;
+      right: 0px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background-color: #fff;
+      color: #2962ff;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 6px 12px;
+      border: 1px solid #e0e6ed;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+    p {
+    font-size: 16px;
+    color: #bbbbbb;
+    }
+    strong {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: white;
+    background: #1864cb;
+    padding: 0.2em;
+    border-radius: 10px;
+    }
+    p#statusWaiting {
+    font-size: 12px;
+    }
+    .copy-btn:hover {
+      background-color: #f0f7ff;
+      border-color: #2962ff;
+    }
+    
+    .copy-btn:active {
+      transform: translateY(-50%) scale(0.98);
+    }
+    
+    .copy-feedback {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #4caf50;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .copy-feedback.show {
+      opacity: 1;
+    }
+    
+    i.fas.fa-sync-alt {
+        color: white;
+        font-size: 16px;
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.5s ease forwards;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Payment Details</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="messages mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <h5 class="mb-3">Payment Information:</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Plan:
+                                <span>{{ deposit.subscription_plan.name }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Amount:
+                                <span>{{ deposit.price_amount }} {{ deposit.price_currency }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Payment ID:
+                                <span class="text-muted">{{ deposit.payment_id }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Created:
+                                <span>{{ deposit.created_at|date:"F j, Y, g:i a" }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Status:
+                                <span class="payment-status status-{{ deposit.payment_status|lower }}" id="paymentStatusBadge">
+                                    {{ deposit.payment_status }}
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Last Updated:
+                                <span id="lastUpdated">{{ deposit.updated_at|date:"F j, Y, g:i a" }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    {% if deposit.payment_status != 'COMPLETED' and deposit.payment_status != 'FAILED' %}
+                    <div class="payment-instructions mb-4" id="paymentInstructions">
+                        <h5 class="mb-3">Payment Instructions:</h5>
+                        <div class="alert alert-info">
+                            <p>Please send <strong>{{ deposit.pay_amount }} {{ deposit.pay_currency|upper }}</strong> to the address below:</p>
+                        </div>
+                        
+                        <div class="payment-address-container mb-4">
+                            <label for="paymentAddress" class="form-label fw-medium mb-2">Send payment to:</label>
+                            <div class="address-wrapper">
+                                <input 
+                                    type="text" 
+                                    class="form-control address-input" 
+                                    value="{{ deposit.pay_address }}" 
+                                    id="paymentAddress" 
+                                    readonly
+                                >
+                                <button 
+                                    class="copy-btn" 
+                                    type="button" 
+                                    id="copyAddressBtn"
+                                >
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <div class="copy-feedback" id="copyFeedback">Copied!</div>
+                            </div>
+                        </div>
+                        
+                        <div class="qr-container mb-3">
+                            <!-- Generate QR code using an external service -->
+                            <img src="https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl={{ deposit.pay_address }}" alt="Payment QR Code">
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            <strong>Important:</strong> Send only {{ deposit.pay_currency|upper }} to this address. 
+                            Sending any other cryptocurrency may result in permanent loss of funds.
+                        </div>
+                    </div>
+                    
+                    <div class="status-update mb-4 status-update-container" id="statusUpdateContainer">
+                        <div class="status-update-overlay" id="statusOverlay">
+                            <i class="fas fa-spinner spin-animation status-loading"></i>
+                        </div>
+                        
+                        <div id="statusMessages">
+                            <p class="status-message status-waiting active" id="statusWaiting">
+                                Waiting for payment...
+                            </p>
+                            <p class="status-message status-confirming" id="statusConfirming">
+                                Payment received! Waiting for blockchain confirmation...
+                            </p>
+                            <p class="status-message status-sending" id="statusSending">
+                                Confirmation received! Processing your subscription...
+                            </p>
+                            <p class="status-message status-completed" id="statusCompleted">
+                                Payment completed! Your subscription is now active.
+                            </p>
+                            <p class="status-message status-failed" id="statusFailed">
+                                There was an issue with your payment. Please contact support.
+                            </p>
+                        </div>
+                        
+                        <button 
+                            class="btn btn-primary w-100" 
+                            id="checkStatusBtn" 
+                            type="button"
+                        >
+                            <i class="fas fa-sync-alt"></i> 
+                            <span>Check Status</span>
+                        </button>
+                    </div>
+                    {% else %}
+                        {% if deposit.payment_status == 'COMPLETED' %}
+                        <div class="alert alert-success fade-in">
+                            <i class="fas fa-check-circle"></i> 
+                            <strong>Payment Completed!</strong> Your subscription has been activated.
+                        </div>
+                        {% else %}
+                        <div class="alert alert-danger fade-in">
+                            <i class="fas fa-times-circle"></i> 
+                            <strong>Payment Failed.</strong> Please try again or contact support if you need assistance.
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'account:subscription_plans' %}" class="btn btn-outline-secondary">
+                             Back to Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% block extra_js %}
+<script>
+// Simple function to copy text
+function copyToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    } else {
+        let textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            textArea.remove();
+            return Promise.resolve();
+        } catch (error) {
+            textArea.remove();
+            return Promise.reject(error);
+        }
+    }
+}
+
+// Initialize buttons when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Copy button functionality
+    const copyBtn = document.getElementById('copyAddressBtn');
+    const addressInput = document.getElementById('paymentAddress');
+    const copyFeedback = document.getElementById('copyFeedback');
+
+    if (copyBtn && addressInput) {
+        copyBtn.addEventListener('click', function() {
+            const textToCopy = addressInput.value.trim();
+            
+            copyToClipboard(textToCopy)
+                .then(() => {
+                    copyFeedback.classList.add('show');
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    
+                    setTimeout(() => {
+                        copyFeedback.classList.remove('show');
+                        copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                    }, 2000);
+                })
+                .catch(() => {
+                    alert('Failed to copy. Please try selecting and copying manually.');
+                });
+        });
+    }
+
+    // Check status button functionality
+    const checkStatusBtn = document.getElementById('checkStatusBtn');
+    if (checkStatusBtn) {
+        let isChecking = false;
+
+        checkStatusBtn.addEventListener('click', async function() {
+            if (isChecking) return;
+            isChecking = true;
+
+            const icon = checkStatusBtn.querySelector('i');
+            const span = checkStatusBtn.querySelector('span');
+            
+            // Update button state
+            checkStatusBtn.disabled = true;
+            icon.classList.add('fa-spin');
+            span.textContent = ' Checking...';
+
+            try {
+                const response = await fetch('{% url "account:check_payment_status" deposit.payment_id %}', {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+
+                if (data.status !== '{{ deposit.payment_status }}') {
+                    // Reload page if status changed
+                    window.location.reload();
+                } else {
+                    // Show no change message
+                    const message = document.createElement('div');
+                    message.className = 'alert alert-info mt-3';
+                    message.textContent = 'No status change detected.';
+                    checkStatusBtn.parentNode.insertBefore(message, checkStatusBtn.nextSibling);
+                    
+                    setTimeout(() => message.remove(), 3000);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to check status. Please try again.');
+            } finally {
+                // Reset button state
+                setTimeout(() => {
+                    checkStatusBtn.disabled = false;
+                    icon.classList.remove('fa-spin');
+                    span.textContent = ' Check Status';
+                    isChecking = false;
+                }, 1000);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

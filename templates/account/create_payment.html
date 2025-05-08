@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}Create Payment - {{ plan.name }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/deposit.css' %}">
+{% endblock %}
+
+
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Subscribe to {{ plan.name }} Plan</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Plan Details:</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Price:
+                                <span class="badge bg-primary rounded-pill">₦{{ plan.price }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Duration:
+                                <span class="badge bg-info rounded-pill">{{ plan.duration_days }} days</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Monthly Emails:
+                                <span class="badge bg-success rounded-pill">{{ plan.max_emails_per_month }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post" action="{% url 'account:create_payment' plan.id %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="pay_currency" class="form-label">Select Cryptocurrency:</label>
+                            <select name="pay_currency" id="pay_currency" class="form-select">
+                                {% for crypto in cryptocurrencies %}
+                                <option value="{{ crypto.code }}">{{ crypto.name }} ({{ crypto.code }})</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">
+                                The cryptocurrency you want to pay with.
+                            </small>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            You will be redirected to a secure payment page to complete your transaction.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fab fa-bitcoin"></i> Proceed to Payment
+                            </button>
+                        
+                        </div>
+                        
+                    </form>
+                    <a href="{% url 'account:subscription_plans' %}" class="btn btn-outline-secondary">
+                        Back to Plans
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

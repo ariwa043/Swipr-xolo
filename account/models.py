@@ -5,11 +5,15 @@ from django.utils import timezone
 from shortuuid.django_fields import ShortUUIDField
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
+from django.core.validators import FileExtensionValidator
 
 STATUS_CHOICES = [
     ('PENDING', 'Pending'),
     ('COMPLETED', 'Completed'),
     ('FAILED', 'Failed'),
+    ('WAITING', 'Waiting for Payment'),
+    ('CONFIRMING', 'Confirming Payment'),
+    ('SENDING', 'Sending to Merchant'),
 ]
 
 class User(AbstractUser):
@@ -72,18 +76,46 @@ class UserProfile(models.Model):
         verbose_name = 'User Profile'
         verbose_name_plural = 'User Profiles'
 
+#class CryptoPayment(models.Model):
+#    payment_id = models.CharField(max_length=100, unique=True)
+#    pay_address = models.CharField(max_length=255)
+#    pay_amount = models.DecimalField(max_digits=18, decimal_places=8)
+#    pay_currency = models.CharField(max_length=10)
+#    price_amount = models.DecimalField(max_digits=10, decimal_places=2)
+#    price_currency = models.CharField(max_length=10, default='USD')
+#    created_at = models.DateTimeField(auto_now_add=True)
+#    updated_at = models.DateTimeField(auto_now=True)
+#    payment_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='WAITING')
+#    ipn_received = models.BooleanField(default=False)
+#    
+#    def __str__(self):
+#        return f"Payment {self.payment_id} - {self.payment_status}"
+#    
+#    class Meta:
+#        verbose_name = 'Crypto Payment'
+#        verbose_name_plural = 'Crypto Payments'
 
-class Payment_account(models.Model):
-    bank_name = models.CharField(max_length=100, null=True, blank=True)
-    account_number = models.CharField(max_length=10, null=True, blank=True)
-    account_holder_name = models.CharField(max_length=100, null=True, blank=True)
+class Deposit(models.Model):
+    payment_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    subscription_plan = models.ForeignKey('SubscriptionPlan', on_delete=models.CASCADE, null=True, blank=True)
+    pay_address = models.CharField(max_length=255, null=True, blank=True)
+    pay_amount = models.DecimalField(max_digits=18, decimal_places=8, null=True, blank=True)
+    pay_currency = models.CharField(max_length=10, default='NGN', null=True, blank=True)
+    price_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    price_currency = models.CharField(max_length=10, default='NGN')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    payment_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='WAITING')
+    ipn_received = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'Payment Account of {self.account_holder_name}'
-
+        return f"Deposit {self.payment_id} - {self.payment_status}"
+    
     class Meta:
-        verbose_name = 'Payment Account'
-        verbose_name_plural = 'Payment Accounts'
+        verbose_name = 'Deposit'
+        verbose_name_plural = 'Deposits'
+
 
 
 class SubscriptionPlan(models.Model):
@@ -128,6 +160,14 @@ class Subscription(models.Model):
     def has_reached_limit(self):
         return self.get_monthly_usage() >= self.plan.max_emails_per_month
 
+    def get_usage_percentage(self):
+        """Calculate the percentage of email usage"""
+        usage = self.get_monthly_usage()
+        total = self.plan.max_emails_per_month
+        if total > 0:
+            return int((usage / total) * 100)
+        return 0
+
     class Meta:
         verbose_name = 'Subscription'
         verbose_name_plural = 'Subscriptions'
@@ -135,25 +175,6 @@ class Subscription(models.Model):
     def __str__(self):
         return f"{self.user.username}'s subscription enabled"
 
-
-class Deposit(models.Model):
-    deposit_id = ShortUUIDField(unique=True, max_length=8, length=5, prefix='dp', alphabet='0123456789')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    payment_account = models.ForeignKey(Payment_account, on_delete=models.CASCADE, null=True, blank=True)
-    subscription_plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE, null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
-
-    @property
-    def amount(self):
-        return self.subscription_plan.price
-
-    class Meta:
-        verbose_name = 'Deposit'
-        verbose_name_plural = 'Deposits'
-
-    def __str__(self):
-        return f'{self.user.username} -  subscription payment'
 
 
 class Transactions(models.Model):
@@ -177,16 +198,28 @@ class Transactions(models.Model):
 @receiver(pre_save, sender=Deposit)
 def create_subscription_on_deposit(sender, instance, **kwargs):
     if instance.id:
-        old_instance = Deposit.objects.get(id=instance.id)
-        if old_instance.status != 'COMPLETED' and instance.status == 'COMPLETED':
-            # Create or extend subscription
-            subscription = Subscription.objects.create(
-                user=instance.user,
-                plan=instance.subscription_plan
-            )
-            # Create transaction record
-            Transactions.objects.create(
-                user=instance.user,
-                subscription=subscription,
-                status='COMPLETED'
-            )
+        try:
+            old_instance = Deposit.objects.get(id=instance.id)
+            # Only proceed if status is changing from non-COMPLETED to COMPLETED
+            if old_instance.status != 'COMPLETED' and instance.status == 'COMPLETED':
+                # Check if a transaction already exists for this deposit
+                existing_transaction = Transactions.objects.filter(
+                    user=instance.user,
+                    subscription__plan=instance.subscription_plan,
+                    created_at__date=instance.created_at.date()
+                ).exists()
+
+                if not existing_transaction:
+                    # Create or extend subscription
+                    subscription = Subscription.objects.create(
+                        user=instance.user,
+                        plan=instance.subscription_plan
+                    )
+                    # Create transaction record
+                    Transactions.objects.create(
+                        user=instance.user,
+                        subscription=subscription,
+                        status='COMPLETED'
+                    )
+        except Deposit.DoesNotExist:
+            pass

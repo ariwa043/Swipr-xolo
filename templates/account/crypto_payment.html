@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="crypto-payment-container">
+    <div class="payment-details">
+        <h2>Cryptocurrency Payment</h2>
+        <div class="qr-section">
+            <!-- Add QR code for the payment address -->
+            <img src="https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl={{ crypto_payment.pay_address }}" 
+                 alt="Payment QR Code">
+        </div>
+        
+        <div class="payment-info">
+            <div class="info-row">
+                <span class="label">Amount:</span>
+                <span class="value">{{ crypto_payment.pay_amount }} {{ crypto_payment.pay_currency }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="label">Address:</span>
+                <div class="address-container">
+                    <span class="value address">{{ crypto_payment.pay_address }}</span>
+                    <button onclick="copyAddress()" class="copy-btn">
+                        <i class="far fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="status-section">
+                <div class="status-label">Status:</div>
+                <div class="status-badge {{ crypto_payment.payment_status|lower }}">
+                    {{ crypto_payment.payment_status }}
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>Payment Instructions:</h3>
+            <ol>
+                <li>Send exactly {{ crypto_payment.pay_amount }} {{ crypto_payment.pay_currency }} to the address above</li>
+                <li>The payment will be automatically confirmed on the blockchain</li>
+                <li>Your subscription will be activated once the payment is confirmed</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyAddress() {
+    const address = '{{ crypto_payment.pay_address }}';
+    navigator.clipboard.writeText(address).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => {
+            btn.innerHTML = '<i class="far fa-copy"></i>';
+        }, 2000);
+    });
+}
+
+// Auto-refresh status every 30 seconds
+setInterval(() => {
+    location.reload();
+}, 30000);
+</script>
+
+<style>
+.crypto-payment-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: var(--card-background);
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.qr-section {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.qr-section img {
+    border-radius: 10px;
+    padding: 1rem;
+    background: white;
+}
+
+.payment-info {
+    margin: 2rem 0;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.label {
+    font-weight: bold;
+    margin-right: 1rem;
+    min-width: 100px;
+}
+
+.address-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.copy-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 5px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.status-badge.waiting {
+    background: #ffd700;
+    color: #000;
+}
+
+.status-badge.completed {
+    background: #4CAF50;
+    color: white;
+}
+
+.status-badge.failed {
+    background: #f44336;
+    color: white;
+}
+
+.instructions {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.instructions ol {
+    margin-left: 1.5rem;
+}
+
+.instructions li {
+    margin: 0.5rem 0;
+}
+</style>
+{% endblock %}

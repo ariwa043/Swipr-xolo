@@ -50,25 +50,23 @@ class DepositForm(forms.ModelForm):
         empty_label=None,
         label='Select Subscription Plan'
     )
-
+    
     class Meta:
         model = Deposit
-        fields = ['subscription_plan']
-
+        fields = ['subscription_plan']  # We don't need receipt field for crypto payments
+        
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['subscription_plan'].widget.attrs.update({
             'class': 'form-control',
-            'onchange': 'updateAmount(this.value)'
+            'required': 'required'
         })
-
-    def clean_amount(self):
-        amount = self.cleaned_data.get('amount')
-        if not amount:
-            raise forms.ValidationError("Amount is required.")
-        if amount <= 0:
-            raise forms.ValidationError("Amount must be greater than zero.")
-        return amount
+        
+    def clean_subscription_plan(self):
+        plan = self.cleaned_data.get('subscription_plan')
+        if not plan:
+            raise forms.ValidationError("Please select a subscription plan.")
+        return plan
 
 class EmailAuthenticationForm(AuthenticationForm):
     email = forms.EmailField(label='Email')
