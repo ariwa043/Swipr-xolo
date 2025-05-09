@@ -216,8 +216,8 @@ JAZZMIN_SETTINGS = {
 BASE_URL = 'https://blazespom.onrender.com' if not DEBUG else 'http://localhost:8000'
 
 # NOWPayments Settings
-NOWPAYMENTS_API_KEY = 'FWNR786-KM34AQ5-PFJ7SM8-4YPHX8E'
-NOWPAYMENTS_IPN_SECRET_KEY = 'FWb1JV7X6/W3G4A5p/+LotQh2lAdmc2N'
+NOWPAYMENTS_API_KEY = 'V273MFM-87JMBCG-KA0V1KT-5836EJA'
+NOWPAYMENTS_IPN_SECRET_KEY = '8typN6jAEU5pTVZBxhno5vBzW5ePHrwc'
 NOWPAYMENTS_IPN_CALLBACK_URL = f'{BASE_URL}/api/crypto/ipn-callback/'
 NOWPAYMENTS_SUCCESS_URL = f'{BASE_URL}/account/crypto-payment/success/'
 NOWPAYMENTS_CANCEL_URL = f'{BASE_URL}/account/crypto-payment/cancel/'
