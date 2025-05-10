@@ -244,7 +244,7 @@ def create_payment(request, plan_id):
         {'code': 'BTC', 'name': 'Bitcoin'},
         {'code': 'ETH', 'name': 'Ethereum'},
         {'code': 'LTC', 'name': 'Litecoin'},
-        {'code': 'USDT', 'name': 'Tether'},
+        {'code': 'USDTBSC', 'name': 'USDT(BEP20)'},
         # Add more cryptocurrencies as needed
     ]
     

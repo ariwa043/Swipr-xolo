@@ -42,7 +42,7 @@
                             <label for="pay_currency" class="form-label">Select Cryptocurrency:</label>
                             <select name="pay_currency" id="pay_currency" class="form-select">
                                 {% for crypto in cryptocurrencies %}
-                                <option value="{{ crypto.code }}">{{ crypto.name }} ({{ crypto.code }})</option>
+                                <option value="{{ crypto.code }}">{{ crypto.name }}</option>
                                 {% endfor %}
                             </select>
                             <small class="form-text text-muted">
