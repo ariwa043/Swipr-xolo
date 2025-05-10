@@ -201,7 +201,7 @@ def create_subscription_on_deposit(sender, instance, **kwargs):
         try:
             old_instance = Deposit.objects.get(id=instance.id)
             # Only proceed if status is changing from non-COMPLETED to COMPLETED
-            if old_instance.status != 'COMPLETED' and instance.status == 'COMPLETED':
+            if old_instance.payment_status != 'COMPLETED' and instance.payment_status == 'COMPLETED':
                 # Check if a transaction already exists for this deposit
                 existing_transaction = Transactions.objects.filter(
                     user=instance.user,
