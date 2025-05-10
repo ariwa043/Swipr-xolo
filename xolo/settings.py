@@ -213,7 +213,7 @@ JAZZMIN_SETTINGS = {
 }
 
 # Define base URL for the site
-BASE_URL = 'https://blazespom.onrender.com' if not DEBUG else 'http://localhost:8000'
+BASE_URL = 'https://blazespom.com' if not DEBUG else 'http://localhost:8000'
 
 # NOWPayments Settings
 NOWPAYMENTS_API_KEY = 'V273MFM-87JMBCG-KA0V1KT-5836EJA'
