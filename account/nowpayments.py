@@ -12,7 +12,7 @@ class NowPaymentsAPI:
             'Content-Type': 'application/json'
         }
 
-    def create_payment(self, price_amount, price_currency='NGN', pay_currency=None, order_id=None):
+    def create_payment(self, price_amount, price_currency='USD', pay_currency=None, order_id=None):
         """Create a new payment"""
         endpoint = f"{self.base_url}/payment"
         payload = {

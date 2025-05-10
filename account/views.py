@@ -180,7 +180,7 @@ def notify_admins_of_pending_payment(deposit):
     A new payment is pending approval:
     User: {deposit.user.username}
     Plan: {deposit.subscription_plan}
-    Amount: ₦{deposit.amount}
+    Amount: ${deposit.amount}
     """
     
     admin_emails = [admin.email for admin in admins if admin.email]
@@ -216,7 +216,7 @@ def create_payment(request, plan_id):
             # Create payment through NowPayments API
             payment_data = nowpayments_api.create_payment(
                 price_amount=plan.price,
-                price_currency='NGN',  # Change if your primary currency is different
+                price_currency='USD',  # Change if your primary currency is different
                 pay_currency=pay_currency,
                 order_id=f"sub_{request.user.id}_{plan.id}_{timezone.now().timestamp()}"
             )

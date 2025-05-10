@@ -101,9 +101,9 @@ class Deposit(models.Model):
     subscription_plan = models.ForeignKey('SubscriptionPlan', on_delete=models.CASCADE, null=True, blank=True)
     pay_address = models.CharField(max_length=255, null=True, blank=True)
     pay_amount = models.DecimalField(max_digits=18, decimal_places=8, null=True, blank=True)
-    pay_currency = models.CharField(max_length=10, default='NGN', null=True, blank=True)
+    pay_currency = models.CharField(max_length=10, default='USD', null=True, blank=True)
     price_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    price_currency = models.CharField(max_length=10, default='NGN')
+    price_currency = models.CharField(max_length=10, default='USD')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     payment_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='WAITING')
@@ -129,7 +129,7 @@ class SubscriptionPlan(models.Model):
         verbose_name_plural = 'Subscription Plans'
 
     def __str__(self):
-        return f"{self.name} Plan - ₦{self.price}"
+        return f"{self.name} Plan - ${self.price}"
 
 
 class Subscription(models.Model):
