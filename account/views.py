@@ -247,7 +247,7 @@ def create_payment(request, plan_id):
         {'code': 'ETH', 'name': 'Ethereum'},
         {'code': 'LTC', 'name': 'Litecoin'},
         {'code': 'USDTBSC', 'name': 'USDT(BEP20)'},
-        {'code': 'USDTTRC', 'name': 'USDT(TRC20)'},
+        {'code': 'USDTTRC20', 'name': 'USDT(TRC20)'},
         {'code': 'DOGE', 'name': 'Dogecoin'},
         {'code': 'XRP', 'name': 'Ripple'},
         {'code': 'TRX', 'name': 'Tron'},
