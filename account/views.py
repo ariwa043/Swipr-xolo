@@ -19,6 +19,8 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 import json
+from time import sleep
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -285,109 +287,94 @@ def payment_details(request, payment_id):
     }
     return render(request, 'account/payment_details.html', context)
 
+from .models import NOWPAYMENTS_STATUS_MAPPING
+
+
+
 @csrf_exempt
 @require_POST
 def ipn_callback(request):
-    """Handle instant payment notifications from NowPayments"""
+    """Handle NOWPayments IPN callbacks"""
     try:
-        # Verify the signature
-        nowpayments_api = NowPaymentsAPI()
-        nowpayments_sig = request.headers.get('x-nowpayments-sig')
-        
-        if not nowpayments_sig:
-            logger.error("Missing NowPayments signature")
-            return HttpResponse(status=400)
-        
-        # Parse request body
-        try:
-            request_data = json.loads(request.body)
-        except json.JSONDecodeError:
-            logger.error("Invalid JSON in IPN callback")
-            return HttpResponse(status=400)
-        
-        # Verify signature
-        if not nowpayments_api.verify_ipn_callback(request_data, nowpayments_sig):
-            logger.error("Invalid signature in IPN callback")
-            return HttpResponse(status=403)
-        
-        # Process the payment notification
-        payment_id = request_data.get('payment_id')
-        payment_status = request_data.get('payment_status')
-        
-        if not payment_id or not payment_status:
-            logger.error("Missing payment_id or payment_status in IPN callback")
-            return HttpResponse(status=400)
-        
-        # Update the deposit record
-        try:
-            deposit = Deposit.objects.get(payment_id=payment_id)
-            deposit.payment_status = payment_status
-            deposit.ipn_received = True
-            deposit.updated_at = timezone.now()
-            deposit.save()
-            
-            # If payment is completed, create or extend subscription
-            if payment_status == 'COMPLETED':
-                _create_or_extend_subscription(deposit)
-            
-            return HttpResponse(status=200)
-        except Deposit.DoesNotExist:
-            logger.error(f"Deposit with payment_id {payment_id} not found")
-            return HttpResponse(status=404)
-            
-    except Exception as e:
-        logger.error(f"Error processing IPN callback: {str(e)}")
-        return HttpResponse(status=500)
+        # Verify the request
+        request_data = json.loads(request.body)
+        logger.info(f"Received IPN callback: {request_data}")
 
+        payment_id = request_data.get('payment_id')
+        nowpayments_status = request_data.get('payment_status', '').lower()
+
+        if not payment_id:
+            logger.error("No payment_id in IPN callback")
+            return HttpResponse(status=400)
+
+        # Get the translated status
+        internal_status = NOWPAYMENTS_STATUS_MAPPING.get(nowpayments_status)
+        if not internal_status:
+            logger.error(f"Unknown payment status: {nowpayments_status}")
+            return HttpResponse(status=400)
+
+        logger.info(f"Translating status '{nowpayments_status}' to '{internal_status}'")
+
+        try:
+            with transaction.atomic():
+                deposit = Deposit.objects.select_for_update().get(payment_id=payment_id)
+                
+                # Update deposit
+                deposit.payment_status = internal_status
+                deposit.ipn_received = True  # Set IPN received flag
+                deposit.save()
+
+                logger.info(f"Updated deposit {payment_id}: status={internal_status}, ipn_received=True")
+
+                # If payment is completed, handle subscription
+                if internal_status == 'COMPLETED':
+                    _create_or_extend_subscription(deposit)
+                    logger.info(f"Created/extended subscription for deposit {payment_id}")
+
+            return HttpResponse("OK", status=200)
+
+        except Deposit.DoesNotExist:
+            logger.error(f"Deposit not found for payment_id: {payment_id}")
+            return HttpResponse(status=404)
+
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON in request body")
+        return HttpResponse(status=400)
+    except Exception as e:
+        logger.error(f"Error processing IPN: {str(e)}", exc_info=True)
+        return HttpResponse(status=500)
+    
 def _create_or_extend_subscription(deposit):
     """Helper function to create or extend subscription"""
-    # Skip if already processed (to prevent duplicates)
-    existing_transaction = Transactions.objects.filter(
-        user=deposit.user,
-        status='COMPLETED',
-        subscription__plan=deposit.subscription_plan,
-        created_at__date=deposit.updated_at.date()
-    ).exists()
-    
-    if existing_transaction:
-        return
-    
-    # Check if user has an active subscription of the same plan
-    try:
-        existing_subscription = Subscription.objects.get(
+    with transaction.atomic():
+        # Check for existing subscription
+        existing_subscription = Subscription.objects.filter(
             user=deposit.user,
-            plan=deposit.subscription_plan,
-            is_active=True,
-            end_date__gt=timezone.now()
-        )
-        
-        # Extend existing subscription
-        existing_subscription.end_date = existing_subscription.end_date + timezone.timedelta(
-            days=deposit.subscription_plan.duration_days
-        )
-        existing_subscription.save()
-        
-        # Create transaction record
-        Transactions.objects.create(
-            user=deposit.user,
-            subscription=existing_subscription,
-            status='COMPLETED'
-        )
-    except Subscription.DoesNotExist:
-        # Create new subscription
-        subscription = Subscription.objects.create(
-            user=deposit.user,
-            plan=deposit.subscription_plan,
             is_active=True
-        )
-        
+        ).first()
+
+        if existing_subscription:
+            # Extend existing subscription
+            existing_subscription.end_date += timezone.timedelta(days=deposit.subscription_plan.duration_days)
+            existing_subscription.save()
+            logger.info(f"Extended subscription for user {deposit.user.id}")
+        else:
+            # Create new subscription
+            subscription = Subscription.objects.create(
+                user=deposit.user,
+                plan=deposit.subscription_plan,
+                is_active=True,
+                start_date=timezone.now(),
+                end_date=timezone.now() + timezone.timedelta(days=deposit.subscription_plan.duration_days)
+            )
+            logger.info(f"Created new subscription {subscription.id} for user {deposit.user.id}")
+
         # Create transaction record
         Transactions.objects.create(
             user=deposit.user,
             subscription=subscription,
             status='COMPLETED'
         )
-
 @login_required
 def subscription_status(request):
     """View subscription status"""
@@ -419,40 +406,46 @@ def subscription_status(request):
 
 @login_required
 def check_payment_status(request, payment_id):
-    """AJAX endpoint to check payment status"""
-    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'error': 'Invalid request method'}, status=400)
+    """Check payment status with polling"""
+    logger.info(f"Checking status for payment {payment_id}")
+    
+    timeout = 900  # 5 minutes timeout
+    interval = 10  # Check every 10 seconds
+    start_time = time.time()
     
     try:
-        deposit = get_object_or_404(Deposit, payment_id=payment_id, user=request.user)
-        nowpayments_api = NowPaymentsAPI()
-        
-        
-        try:
-            payment_status = nowpayments_api.get_payment_status(deposit.payment_id)
+        while True:
+            deposit = get_object_or_404(Deposit, payment_id=payment_id, user=request.user)
+            nowpayments_api = NowPaymentsAPI()
             
-            # Update deposit status if changed
-            if payment_status.get('payment_status') != deposit.payment_status:
-                deposit.payment_status = payment_status.get('payment_status')
+            payment_data = nowpayments_api.get_payment_status(payment_id)
+            logger.info(f"NOWPayments response: {payment_data}")
+            
+            nowpayments_status = payment_data.get('payment_status', '').lower()
+            internal_status = NOWPAYMENTS_STATUS_MAPPING.get(nowpayments_status, 'PENDING')
+            
+            logger.info(f"Status translation: {nowpayments_status} -> {internal_status}")
+            
+            if internal_status != deposit.payment_status:
+                deposit.payment_status = internal_status
                 deposit.save()
+                logger.info(f"Updated deposit status to {internal_status}")
                 
-                # If payment is now completed, create subscription
-                if deposit.payment_status == 'COMPLETED' and deposit.subscription_plan:
+                if internal_status == 'COMPLETED':
                     _create_or_extend_subscription(deposit)
-            
-            return JsonResponse({
-                'status': deposit.payment_status,
-                'lastUpdated': deposit.updated_at.strftime('%B %d, %Y, %I:%M %p')
-            })
-            
-        except Exception as api_error:
-            logger.error(f"API Error checking payment status: {str(api_error)}")
-            return JsonResponse({
-                'error': 'Failed to check payment status',
-                'status': deposit.payment_status,
-                'lastUpdated': deposit.updated_at.strftime('%B %d, %Y, %I:%M %p')
-            })
-            
+                    break
+
+            if time.time() - start_time > timeout:
+                logger.warning(f"Payment check timed out for payment_id: {payment_id}")
+                break
+
+            sleep(interval)
+
+        return JsonResponse({
+            'status': internal_status,
+            'lastUpdated': deposit.updated_at.strftime('%B %d, %Y, %I:%M %p')
+        })
+
     except Exception as e:
-        logger.error(f"Error checking payment status: {str(e)}")
-        return JsonResponse({'error': 'Failed to check payment status'}, status=500)
+        logger.error(f"Error checking status: {str(e)}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)

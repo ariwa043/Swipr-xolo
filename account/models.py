@@ -15,7 +15,19 @@ STATUS_CHOICES = [
     ('CONFIRMING', 'Confirming Payment'),
     ('SENDING', 'Sending to Merchant'),
 ]
+# Add this after STATUS_CHOICES
 
+NOWPAYMENTS_STATUS_MAPPING = {
+    'waiting': 'WAITING',
+    'confirming': 'CONFIRMING',
+    'confirmed': 'CONFIRMING',
+    'sending': 'SENDING',
+    'partially_paid': 'PENDING',
+    'finished': 'COMPLETED',
+    'failed': 'FAILED',
+    'refunded': 'FAILED',
+    'expired': 'FAILED'
+}
 class User(AbstractUser):
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=100)
