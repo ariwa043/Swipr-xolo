@@ -294,7 +294,7 @@ def send_campaign_email(campaign, request):
     elif template_type == "REFUND":
         subject = "Refund Notification"
     elif template_type == "UNKNOWN DEVICE LOGIN":
-        subject = "Unknown Device Login"
+        subject = "Security Alert: Unknown Device Login Detected"
     else:
         subject = "Notification"
 
