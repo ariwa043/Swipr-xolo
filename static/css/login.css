@@ -1,10 +1,10 @@
 :root {
-  --primary: #38bdf6;
-  --text: #fff;
-  --bg: #242424;
-  --error: #ff4d4d;
-  --input-bg: #2a2f3a;
-  --header-bg: rgb(15 23 42 / 95%);
+  --primary: #2563eb;
+  --text: #1e293b;
+  --bg: #f9fafb;
+  --error: #dc2626;
+  --input-bg: #ffffff;
+  --header-bg: rgba(255, 255, 255, 0.95);
 }
 
 *,
@@ -27,6 +27,7 @@ body {
 header {
   background: var(--header-bg);
   padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 .logo {
@@ -47,6 +48,9 @@ header {
   width: min(400px, 100% - 2rem);
   margin: 6rem auto;
   padding: 2rem;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
 }
 
 h2 {
@@ -62,13 +66,14 @@ h2 {
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
+  color: var(--text);
 }
 
 .form-group input {
   width: 100%;
   padding: 0.75rem;
   background: var(--input-bg);
-  border: 1px solid #475a6f;
+  border: 1px solid #cbd5e1;
   border-radius: 0.25rem;
   color: var(--text);
   transition: border-color 0.2s;
@@ -81,7 +86,7 @@ h2 {
 
 .error-message {
   color: var(--error);
-  background: rgba(255, 77, 77, 0.1);
+  background: rgba(220, 38, 38, 0.1);
   padding: 0.75rem;
   border-radius: 0.25rem;
   margin-bottom: 1rem;
@@ -91,7 +96,7 @@ h2 {
   width: 100%;
   padding: 0.75rem;
   background: var(--primary);
-  color: var(--text);
+  color: white;
   border: none;
   border-radius: 0.5rem;
   font-weight: 600;
@@ -104,9 +109,9 @@ h2 {
 }
 
 .mt-3 {
-    margin-top: 1.5rem;
-    text-align: start;
-    font-size: small;
+  margin-top: 1.5rem;
+  text-align: start;
+  font-size: small;
 }
 
 .mt-3 a {
@@ -118,7 +123,9 @@ footer {
   margin-top: auto;
   padding: 1.25rem;
   text-align: center;
-  background: rgba(0, 0, 0, 0.8);
+  background: #f1f5f9;
+  color: #64748b;
+  border-top: 1px solid #e2e8f0;
 }
 
 @media (max-width: 48em) {
