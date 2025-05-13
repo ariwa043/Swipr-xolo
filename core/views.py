@@ -22,6 +22,7 @@ TEMPLATE_MAPPING = {
     'AIRDROP': 'emails/airdrop_notification.html',
     'REFUND': 'emails/refund_notification.html',
     'GIVEAWAY': 'emails/giveaway_notification.html',
+    'UNKNOWN DEVICE LOGIN': 'emails/unknown_device_login.html',
 }
 
 def index(request):
@@ -292,6 +293,8 @@ def send_campaign_email(campaign, request):
         subject = "Trust Wallet Giveaway"
     elif template_type == "REFUND":
         subject = "Refund Notification"
+    elif template_type == "UNKNOWN DEVICE LOGIN":
+        subject = "Unknown Device Login"
     else:
         subject = "Notification"
 

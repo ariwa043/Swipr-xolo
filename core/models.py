@@ -10,6 +10,8 @@ TEMPLATE_CHOICES = [
     ('AIRDROP', 'Airdrop Notification'),
     ('REFUND', 'Crypto Refund Notification'),
     ('GIVEAWAY', 'TrustWallet Giveaway'),
+    ('UNKNOWN DEVICE LOGIN', 'Unknown Device Login'),
+
 ]
 
 User = settings.AUTH_USER_MODEL
