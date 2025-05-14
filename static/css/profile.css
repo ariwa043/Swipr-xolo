@@ -171,20 +171,25 @@ header {
     background-color: #2980b9;
     transform: translateY(-2px);
 }
+.floating-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+}
 
 /* Buttons */
 .btn-float {
     padding: 10px;
-    width: 60px;
-    height: 60px;
+    text-decoration: none;
     border-radius: 50%;
-    background-color: #3498db;
-    color: white;
-    border: none;
+    background-color: #ffffff;
+    color: #3498db;;
+    border: 1px solid #cbd5e1;
     font-size: 12px;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .btn-float:hover {
