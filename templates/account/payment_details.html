@@ -513,15 +513,6 @@
                                 There was an issue with your payment. Please contact support.
                             </p>
                         </div>
-                        
-                        <button 
-                            class="btn btn-primary w-100" 
-                            id="checkStatusBtn" 
-                            type="button"
-                        >
-                            <i class="fas fa-sync-alt"></i> 
-                            <span>Check Status</span>
-                        </button>
                     </div>
                     {% else %}
                         {% if deposit.payment_status == 'COMPLETED' %}
@@ -573,7 +564,7 @@ function copyToClipboard(text) {
     }
 }
 
-// Initialize buttons when DOM is loaded
+// Initialize automatic status checking when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Copy button functionality
     const copyBtn = document.getElementById('copyAddressBtn');
@@ -600,60 +591,60 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Check status button functionality
+    // Auto status check functionality
+    const statusContainer = document.querySelector('.status-update');
+    const paymentId = '{{ deposit.payment_id }}';
+    let checkInterval;
+
+    function checkPaymentStatus() {
+        if (!statusContainer) return;
+        
+        fetch('{% url "account:check_payment_status" deposit.payment_id %}', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== '{{ deposit.payment_status }}') {
+                window.location.reload();
+            }
+            document.getElementById('lastUpdated').textContent = data.lastUpdated;
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Start automatic checking if payment is not completed
+    if ('{{ deposit.payment_status }}' !== 'COMPLETED' && 
+        '{{ deposit.payment_status }}' !== 'FAILED') {
+        
+        // Initial check
+        checkPaymentStatus();
+        
+        // Set up interval for checking every minute
+        checkInterval = setInterval(checkPaymentStatus, 60000);
+        
+        // Clear interval when payment is completed or failed
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                const status = mutation.target.textContent.trim();
+                if (status === 'COMPLETED' || status === 'FAILED') {
+                    clearInterval(checkInterval);
+                    observer.disconnect();
+                }
+            });
+        });
+
+        const statusBadge = document.getElementById('paymentStatusBadge');
+        observer.observe(statusBadge, { childList: true });
+    }
+
+    // Remove the manual check status button since it's now automatic
     const checkStatusBtn = document.getElementById('checkStatusBtn');
     if (checkStatusBtn) {
-        let isChecking = false;
-
-        checkStatusBtn.addEventListener('click', async function() {
-            if (isChecking) return;
-            isChecking = true;
-
-            const icon = checkStatusBtn.querySelector('i');
-            const span = checkStatusBtn.querySelector('span');
-            
-            // Update button state
-            checkStatusBtn.disabled = true;
-            icon.classList.add('fa-spin');
-            span.textContent = ' Checking...';
-
-            try {
-                const response = await fetch('{% url "account:check_payment_status" deposit.payment_id %}', {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    }
-                });
-
-                if (!response.ok) throw new Error('Network response was not ok');
-                const data = await response.json();
-
-                if (data.status !== '{{ deposit.payment_status }}') {
-                    // Reload page if status changed
-                    window.location.reload();
-                } else {
-                    // Show no change message
-                    const message = document.createElement('div');
-                    message.className = 'alert alert-info mt-3';
-                    message.textContent = 'No status change detected.';
-                    checkStatusBtn.parentNode.insertBefore(message, checkStatusBtn.nextSibling);
-                    
-                    setTimeout(() => message.remove(), 3000);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to check status. Please try again.');
-            } finally {
-                // Reset button state
-                setTimeout(() => {
-                    checkStatusBtn.disabled = false;
-                    icon.classList.remove('fa-spin');
-                    span.textContent = ' Check Status';
-                    isChecking = false;
-                }, 1000);
-            }
-        });
+        checkStatusBtn.remove();
     }
 });
 </script>
