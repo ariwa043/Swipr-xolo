@@ -305,18 +305,25 @@ def send_campaign_email(campaign, request):
 
     # Set specific SMTP settings based on the campaign type
     smtp_settings = settings.CAMPAIGN_EMAIL_BACKENDS.get(template_type)
+    from_email = smtp_settings.get('DEFAULT_FROM_EMAIL', smtp_settings['EMAIL_HOST_USER'])
 
     if smtp_settings:
-        with get_connection(
-            backend='django.core.mail.backends.smtp.EmailBackend',
-            fail_silently=True,
-            **smtp_settings
-        ) as connection:
+        # Map Django settings keys to get_connection kwargs
+        connection_kwargs = {
+            'backend': 'django.core.mail.backends.smtp.EmailBackend',
+            'host': smtp_settings.get('EMAIL_HOST'),
+            'port': smtp_settings.get('EMAIL_PORT'),
+            'username': smtp_settings.get('EMAIL_HOST_USER'),
+            'password': smtp_settings.get('EMAIL_HOST_PASSWORD'),
+            'use_ssl': smtp_settings.get('EMAIL_USE_SSL', False),
+            'fail_silently': True,
+        }
+        with get_connection(**connection_kwargs) as connection:
             try:
                 send_mail(
                     subject,
                     plain_message,
-                    smtp_settings['EMAIL_HOST_USER'],  # Use the user from the specific campaign backend
+                    from_email,  # Use display name here
                     [recipient_email],
                     html_message=html_message,
                     connection=connection,

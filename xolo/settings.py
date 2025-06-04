@@ -168,32 +168,38 @@ EMAIL_TIMEOUT = 60
 
 CAMPAIGN_EMAIL_BACKENDS = {
     'AIRDROP': {
+        'EMAIL_BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'Airdrop <mail@notifytxx.com>',
-        'EMAIL_HOST_PASSWORD': 'ZnfuK5m&',
         'EMAIL_USE_SSL': True,
+        'EMAIL_HOST_USER': 'mail@notifytxx.com',  # Only the email address
+        'EMAIL_HOST_PASSWORD': 'ZnfuK5m&',
+        'DEFAULT_FROM_EMAIL': 'Airdrop <mail@notifytxx.com>'  # Display name here
     },
     'GIVEAWAY': {
+        'EMAIL_BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'Trust Wallet <notifications@notifytxx.com>',
+        'EMAIL_HOST_USER': 'notifications@notifytxx.com',  # Only the email address
         'EMAIL_HOST_PASSWORD': '6WpL0by?',
         'EMAIL_USE_SSL': True,
+        'DEFAULT_FROM_EMAIL': 'Trust wallet <notifications@notifytxx.com>'  # Display name here
     },
     'REFUND': {
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'CoinTrust <service@notifytxx.com>',
+        'EMAIL_HOST_USER': 'service@notifytxx.com',  # Only the email address
         'EMAIL_HOST_PASSWORD': '@C5mXq4Uy',
         'EMAIL_USE_SSL': True,
+        'DEFAULT_FROM_EMAIL': 'Coin Trust <service@notifytxx.com>'
     },
     'UNKNOWN DEVICE LOGIN': {
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'CoinTrust <alert@notifytxx.com>',
+        'EMAIL_HOST_USER': 'alert@notifytxx.com',  # Only the email address
         'EMAIL_HOST_PASSWORD': 'MjXT2zUu[7',
         'EMAIL_USE_SSL': True,
+        'DEFAULT_FROM_EMAIL': 'Coin Trust <alert@notifytxx.com>'
     },
 }
 
