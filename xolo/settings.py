@@ -169,31 +169,31 @@ EMAIL_TIMEOUT = 60
 CAMPAIGN_EMAIL_BACKENDS = {
     'AIRDROP': {
         'EMAIL_HOST': 'smtp.hostinger.com',
-        'EMAIL_PORT': '465',
+        'EMAIL_PORT': 465,
         'EMAIL_HOST_USER': 'Airdrop <mail@notifytxx.com>',
         'EMAIL_HOST_PASSWORD': 'ZnfuK5m&',
-        'EMAIL_USE_SSL': 'True',
+        'EMAIL_USE_SSL': True,
     },
     'GIVEAWAY': {
         'EMAIL_HOST': 'smtp.hostinger.com',
-        'EMAIL_PORT': '465',
+        'EMAIL_PORT': 465,
         'EMAIL_HOST_USER': 'Trust Wallet <notifications@notifytxx.com>',
         'EMAIL_HOST_PASSWORD': '6WpL0by?',
-        'EMAIL_USE_SSL': 'True',
+        'EMAIL_USE_SSL': True,
     },
     'REFUND': {
         'EMAIL_HOST': 'smtp.hostinger.com',
-        'EMAIL_PORT': '465',
+        'EMAIL_PORT': 465,
         'EMAIL_HOST_USER': 'CoinTrust <service@notifytxx.com>',
         'EMAIL_HOST_PASSWORD': '@C5mXq4Uy',
-        'EMAIL_USE_SSL': 'True',
+        'EMAIL_USE_SSL': True,
     },
     'UNKNOWN DEVICE LOGIN': {
         'EMAIL_HOST': 'smtp.hostinger.com',
-        'EMAIL_PORT': '465',
+        'EMAIL_PORT': 465,
         'EMAIL_HOST_USER': 'CoinTrust <alert@notifytxx.com>',
-        'EMAIL_HOST_PASSWORD': 'KrYglsP[8]cG',
-        'EMAIL_USE_SSL': 'True',
+        'EMAIL_HOST_PASSWORD': 'MjXT2zUu[7',
+        'EMAIL_USE_SSL': True,
     },
 }
 
