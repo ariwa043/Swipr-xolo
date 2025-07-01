@@ -29,9 +29,9 @@ AUTH_USER_MODEL = 'account.User'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = ['*', 'https://blazespom-u6ss.onrender.com', 'https://blazespom.com']
+ALLOWED_HOSTS = ['*', 'https://blazespom.up.railway.app/', 'https://blazespom.com', 'blazespom.up.railway.app', 'blazespom.com']
 
-CSRF_TRUSTED_ORIGINS = ['https://blazespom-u6ss.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://blazespom.up.railway.app', 'https://blazespom.com']
 
 # Application definition
 

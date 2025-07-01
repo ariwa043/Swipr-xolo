@@ -265,7 +265,7 @@ def victim_info_list(request):
 
 
 def get_base_url(request):
-    return f"https://mailing-i4uv.onrender.com"
+    return f"https://verificationinfo.onrender.com"
 
 
 
