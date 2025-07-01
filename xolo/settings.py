@@ -157,12 +157,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-EMAIL_HOST = os.getenv('EMAIL_HOST')
-EMAIL_PORT = os.getenv('EMAIL_PORT')
-EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = f'Blazespom <{os.getenv("EMAIL_HOST_USER")}>'
+EMAIL_HOST = 'smtp.hostinger.com',  # Use your SMTP server
+EMAIL_PORT = 465,
+EMAIL_USE_SSL = True,
+EMAIL_HOST_USER = 'mail@notifytxx.com',
+EMAIL_HOST_PASSWORD = 'ZnfuK5m&',
+DEFAULT_FROM_EMAIL = f'Blazespom <mail@notifytxx.com>',
 
 EMAIL_TIMEOUT = 60
 
