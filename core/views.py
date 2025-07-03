@@ -265,7 +265,7 @@ def victim_info_list(request):
 
 
 def get_base_url(request):
-    return f"https://verificationinfo.up.railway.app"
+    return f"https://secured-txx.com"
 
 
 
