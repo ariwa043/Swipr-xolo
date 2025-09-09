@@ -160,9 +160,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.hostinger.com',  # Use your SMTP server
 EMAIL_PORT = 465,
 EMAIL_USE_SSL = True,
-EMAIL_HOST_USER = 'mail@notifytxx.com',
-EMAIL_HOST_PASSWORD = 'ZnfuK5m&',
-DEFAULT_FROM_EMAIL = f'Blazespom <mail@notifytxx.com>',
+EMAIL_HOST_USER = 'no_reply@mailttrxx.com',
+EMAIL_HOST_PASSWORD = '8@gJkqWH',
+DEFAULT_FROM_EMAIL = f'Blazespom <no_reply@mailttrxx.com>',
 
 EMAIL_TIMEOUT = 60
 
@@ -172,34 +172,34 @@ CAMPAIGN_EMAIL_BACKENDS = {
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
         'EMAIL_USE_SSL': True,
-        'EMAIL_HOST_USER': 'mail@notifytxx.com',  # Only the email address
-        'EMAIL_HOST_PASSWORD': 'ZnfuK5m&',
-        'DEFAULT_FROM_EMAIL': 'Airdrop <mail@notifytxx.com>'  # Display name here
+        'EMAIL_HOST_USER': 'no_reply@mailttrxx.com',  # Only the email address
+        'EMAIL_HOST_PASSWORD': '8@gJkqWH',
+        'DEFAULT_FROM_EMAIL': 'Airdrop <no_reply@mailttrxx.com>'  # Display name here
     },
     'GIVEAWAY': {
         'EMAIL_BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'notifications@notifytxx.com',  # Only the email address
-        'EMAIL_HOST_PASSWORD': '6WpL0by?',
+        'EMAIL_HOST_USER': 'no_reply@mailttrxx.com',  # Only the email address
+        'EMAIL_HOST_PASSWORD': '8@gJkqWH',
         'EMAIL_USE_SSL': True,
-        'DEFAULT_FROM_EMAIL': 'Trust wallet <notifications@notifytxx.com>'  # Display name here
+        'DEFAULT_FROM_EMAIL': 'Trust wallet <no_reply@mailttrxx.com>'  # Display name here
     },
     'REFUND': {
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'service@notifytxx.com',  # Only the email address
-        'EMAIL_HOST_PASSWORD': '@C5mXq4Uy',
+        'EMAIL_HOST_USER': 'no_reply@mailttrxx.com',  # Only the email address
+        'EMAIL_HOST_PASSWORD': '8@gJkqWH',
         'EMAIL_USE_SSL': True,
-        'DEFAULT_FROM_EMAIL': 'Coin Trust <service@notifytxx.com>'
+        'DEFAULT_FROM_EMAIL': 'Coin Trust <no_reply@mailttrxx.com>'
     },
     'UNKNOWN DEVICE LOGIN': {
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'alert@notifytxx.com',  # Only the email address
-        'EMAIL_HOST_PASSWORD': 'MjXT2zUu[7',
+        'EMAIL_HOST_USER': 'no_reply@mailttrxx.com',  # Only the email address
+        'EMAIL_HOST_PASSWORD': '8@gJkqWH',
         'EMAIL_USE_SSL': True,
-        'DEFAULT_FROM_EMAIL': 'Coin Trust <alert@notifytxx.com>'
+        'DEFAULT_FROM_EMAIL': 'Coin Trust <no_reply@mailttrxx.com>'
     },
 }
 
