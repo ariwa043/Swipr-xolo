@@ -160,9 +160,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.hostinger.com',  # Use your SMTP server
 EMAIL_PORT = 465,
 EMAIL_USE_SSL = True,
-EMAIL_HOST_USER = 'no_reply@mailttrxx.com',
-EMAIL_HOST_PASSWORD = '8@gJkqWH',
-DEFAULT_FROM_EMAIL = f'Blazespom <no_reply@mailttrxx.com>',
+EMAIL_HOST_USER = 'dontreply@mailxospeed.pro',
+EMAIL_HOST_PASSWORD = '2Cn@PIjb',
+DEFAULT_FROM_EMAIL = f'Blazespom <dontreply@mailxospeed.pro>',
 
 EMAIL_TIMEOUT = 60
 
@@ -172,34 +172,34 @@ CAMPAIGN_EMAIL_BACKENDS = {
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
         'EMAIL_USE_SSL': True,
-        'EMAIL_HOST_USER': 'no_reply@mailttrxx.com',  # Only the email address
-        'EMAIL_HOST_PASSWORD': '8@gJkqWH',
-        'DEFAULT_FROM_EMAIL': 'Airdrop <no_reply@mailttrxx.com>'  # Display name here
+        'EMAIL_HOST_USER': 'dontreply@mailxospeed.pro',  # Only the email address
+        'EMAIL_HOST_PASSWORD': '2Cn@PIjb',
+        'DEFAULT_FROM_EMAIL': 'Airdrop <dontreply@mailxospeed.pro>'  # Display name here
     },
     'GIVEAWAY': {
         'EMAIL_BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'no_reply@mailttrxx.com',  # Only the email address
-        'EMAIL_HOST_PASSWORD': '8@gJkqWH',
+        'EMAIL_HOST_USER': 'dontreply@mailxospeed.pro',  # Only the email address
+        'EMAIL_HOST_PASSWORD': '2Cn@PIjb',
         'EMAIL_USE_SSL': True,
-        'DEFAULT_FROM_EMAIL': 'Trust wallet <no_reply@mailttrxx.com>'  # Display name here
+        'DEFAULT_FROM_EMAIL': 'Trust wallet <dontreply@mailxospeed.pro>'  # Display name here
     },
     'REFUND': {
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'no_reply@mailttrxx.com',  # Only the email address
-        'EMAIL_HOST_PASSWORD': '8@gJkqWH',
+        'EMAIL_HOST_USER': 'dontreply@mailxospeed.pro',  # Only the email address
+        'EMAIL_HOST_PASSWORD': '2Cn@PIjb',
         'EMAIL_USE_SSL': True,
-        'DEFAULT_FROM_EMAIL': 'Coin Trust <no_reply@mailttrxx.com>'
+        'DEFAULT_FROM_EMAIL': 'Coin Trust <dontreply@mailxospeed.pro>'
     },
     'UNKNOWN DEVICE LOGIN': {
         'EMAIL_HOST': 'smtp.hostinger.com',
         'EMAIL_PORT': 465,
-        'EMAIL_HOST_USER': 'no_reply@mailttrxx.com',  # Only the email address
-        'EMAIL_HOST_PASSWORD': '8@gJkqWH',
+        'EMAIL_HOST_USER': 'dontreply@mailxospeed.pro',  # Only the email address
+        'EMAIL_HOST_PASSWORD': '2Cn@PIjb',
         'EMAIL_USE_SSL': True,
-        'DEFAULT_FROM_EMAIL': 'Coin Trust <no_reply@mailttrxx.com>'
+        'DEFAULT_FROM_EMAIL': 'Coin Trust <dontreply@mailxospeed.pro>'
     },
 }
 
